@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="Encoding">
+    <file url="file://$PROJECT_DIR$/HospitalSystem_Admin/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/HospitalSystem_Admin/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/HospitalSystem_Doctor/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/HospitalSystem_Doctor/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/HospitalSystem_Gateway/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/HospitalSystem_Gateway/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/HospitalSystem_Interface/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/HospitalSystem_Interface/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/HospitalSystem_Nacos/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/HospitalSystem_Nacos/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/HospitalSystem_Patient/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/HospitalSystem_Patient/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/HospitalSystem_Pojo/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/HospitalSystem_Pojo/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/src/main/resources" charset="UTF-8" />
+  </component>
+</project>

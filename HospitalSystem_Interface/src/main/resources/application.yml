@@ -1,0 +1,22 @@
+spring:
+  application:
+    name: HospitalSystem-Interface
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/HospitalDB?serverTimezone=Asia/Shanghai
+    username: root
+    password: 991234
+    type: com.alibaba.druid.pool.DruidDataSource
+  cloud:
+    nacos:
+      config:
+        import-check:
+          enabled: false
+        server-addr: localhost:8848
+      discovery:
+        server-addr: localhost:8848
+server:
+  port: 8080
+
+mybatis:
+  mapper-locations: classpath:/Mappers/*.xml

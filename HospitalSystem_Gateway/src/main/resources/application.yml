@@ -1,0 +1,43 @@
+spring:
+  profiles:
+    active: dev
+  main:
+    web-application-type: reactive
+  application:
+    name: HospitalSystem-Gateway
+  cloud:
+    nacos:
+      config:
+        import-check:
+          enabled: false
+        server-addr: localhost:8848
+        file-extension: yaml
+      discovery:
+        server-addr: localhost:8848
+    gateway:
+      routes:
+        - id: HospitalSystem-Patient
+          uri: lb://HospitalSystem-Patient
+          predicates:
+            - Path=/app/**
+          filters:
+            - StripPrefix=1
+
+        - id: HospitalSystem-Admin
+          uri: lb://HospitalSystem-Admin
+          predicates:
+            - Path=/leader/**
+          filters:
+            - StripPrefix=1
+
+        - id: HospitalSystem-Doctor
+          uri: lb://HospitalSystem-Doctor
+          predicates:
+            - Path=/worker/**
+          filters:
+            - StripPrefix=1
+
+
+server:
+  port: 7777
+

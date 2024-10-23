@@ -1,0 +1,16 @@
+spring:
+  application:
+    name: HospitalSystem-Doctor
+  cloud:
+    loadbalancer:
+      nacos:
+        enabled: true
+    nacos:
+      config:
+        import-check:
+          enabled: false
+      discovery:
+        server-addr: localhost:8848
+server:
+  port: 8002
+
