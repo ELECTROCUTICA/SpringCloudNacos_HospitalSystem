@@ -49,7 +49,7 @@ public interface PatientFeignService {
 
 
     @PostMapping(PREFIX + "/cancelRegistration")
-    Map<String, Object> cancelRegistration(@RequestParam("id") String id, @SpringQueryMap Patient patient);
+    Map<String, Object> cancelRegistration(@RequestParam("reg_id") String reg_id, @SpringQueryMap Patient patient);
 
     @GetMapping( PREFIX + "/getArrangement")
     PatientArrangementResponse getArrangement();

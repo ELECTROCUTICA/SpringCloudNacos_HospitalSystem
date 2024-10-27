@@ -21,9 +21,6 @@ import java.util.Map;
 @RequestMapping("patient")
 public class PatientController {
 
-//
-//    @Autowired
-//    private PatientHttpExchangeService patientHttpExchangeService;
 
     @Autowired
     private PatientFeignService patientFeignService;
@@ -82,9 +79,9 @@ public class PatientController {
 
 
     @PostMapping("/cancelRegistration")
-    public Map<String, Object> cancelRegistration(@RequestParam("id") String id, HttpServletRequest request) {
+    public Map<String, Object> cancelRegistration(@RequestParam("reg_id") String reg_id, HttpServletRequest request) {
         String token = request.getHeader("Authorization");
-        return patientFeignService.cancelRegistration(id, JWTUtils.getPatientFromToken(token));
+        return patientFeignService.cancelRegistration(reg_id, JWTUtils.getPatientFromToken(token));
     }
 
 

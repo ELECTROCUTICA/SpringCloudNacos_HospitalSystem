@@ -1,5 +1,6 @@
 package com.HospitalSystem_Interface.Service;
 
+import com.HospitalSystem_Interface.Utils.RedisUtils;
 import com.HospitalSystem_Pojo.Entity.*;
 import com.HospitalSystem_Pojo.Map.*;
 import com.HospitalSystem_Pojo.Response.*;
@@ -9,6 +10,7 @@ import com.HospitalSystem_Interface.Mapper.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -35,6 +37,10 @@ public class PatientServiceImplement implements PatientService {
 
     @Autowired
     private DoctorArrangementMapper doctorArrangementMapper;
+
+    @Autowired
+    private RedisUtils redisUtils;
+
 
     @Override
     public Map<String, Object> getServerTime() {
@@ -187,7 +193,9 @@ public class PatientServiceImplement implements PatientService {
 
     @Override
     @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
+    @Cacheable(value = "PatientRecords", keyGenerator = "PatientRecordsGet", cacheManager = "RedisCacheManagerTTL")
     public PatientRecordsResponse getPatientRecords(String p, Patient patient) {
+
 
         int pn;
         if (p == null || p.isEmpty()) {
@@ -221,18 +229,25 @@ public class PatientServiceImplement implements PatientService {
 
     @Override
     @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
-    public Map<String, Object> cancelRegistration(String id, Patient patient) {
+    public Map<String, Object> cancelRegistration(String reg_id, Patient patient) {
+        redisUtils.deletePatientRecordsCache(patient.getId());
+
         HashMap<String, Object> map = new HashMap<>();
-        Registration updated = registrationMapper.getRegistration(id);
-        if (id != null) {
+        Registration updated = registrationMapper.getRegistration(reg_id);
+        if (reg_id != null && updated.getStatus() == 1) {
             updated.setStatus(0);
             registrationMapper.updateRegistration(updated);
             map.put("state", "ok");
             map.put("message", "取消预约成功");
-            return map;
         }
-        map.put("state", "fail");
-        map.put("message", "无效的挂号信息");
+        else if (updated.getStatus() != 1) {
+            map.put("state", "fail");
+            map.put("message", "该挂号状态已经被取消或已经被完成");
+        }
+        else {
+            map.put("state", "fail");
+            map.put("message", "无效的挂号信息");
+        }
         return map;
     }
 
@@ -349,6 +364,8 @@ public class PatientServiceImplement implements PatientService {
     @Override
     @Transactional(propagation = Propagation.REQUIRED, rollbackFor = {Exception.class, ParseException.class})
     public Map<String, Object> registrationSubmit(String doctor_id, String date, Patient patient) {
+        redisUtils.deletePatientRecordsCache(patient.getId());
+
         HashMap<String, Object> map = new HashMap<>();
 
         if (patient.getId() != null && doctor_id != null && !doctor_id.isEmpty()) {

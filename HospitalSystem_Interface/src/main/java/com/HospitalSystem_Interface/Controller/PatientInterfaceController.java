@@ -66,8 +66,8 @@ public class PatientInterfaceController {
 
 
     @PostMapping("/cancelRegistration")
-    public Map<String, Object> cancelRegistration(@RequestParam("id") String id, @SpringQueryMap Patient patient) {
-        return patientService.cancelRegistration(id, patient);
+    public Map<String, Object> cancelRegistration(@RequestParam("reg_id") String reg_id, @SpringQueryMap Patient patient) {
+        return patientService.cancelRegistration(reg_id, patient);
     }
 
 

@@ -46,11 +46,11 @@ public interface PatientService {
     PatientRecordsResponse getPatientRecords(String p, Patient patient);
 
     /**  病人取消预约挂号
-     * @param id  挂号编号
+     * @param reg_id  挂号编号
      * @param patient  Controller传递的patient对象
      * @return 包含病人挂号记录的json格式数据
      */
-    Map<String, Object> cancelRegistration(String id, Patient patient);
+    Map<String, Object> cancelRegistration(String reg_id, Patient patient);
 
     /**  病人获取某日某科室上班医生的列表
      * @param id  病人身份证号码（不可更改）
