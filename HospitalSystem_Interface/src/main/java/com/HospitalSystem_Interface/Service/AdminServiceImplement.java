@@ -19,6 +19,8 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 
 @Service
@@ -74,7 +76,8 @@ public class AdminServiceImplement implements AdminService {
             }
             Page page = new Page((pn - 1) * 10, 10, pn);
             doctors = (ArrayList<Doctor>) doctorMapper.searchDoctorsForPagination(page, keyword);
-        } else {
+        }
+        else {
             doctors_count = doctorMapper.getCounts();
             if (doctors_count > 0 && doctors_count % 10 == 0) {
                 total_page_count = doctors_count / 10;
@@ -132,7 +135,8 @@ public class AdminServiceImplement implements AdminService {
             map.put("state", "ok");
             map.put("message", "修改成功");
             return map;
-        } else {
+        }
+        else {
             map.put("state", "fail");
             map.put("message", "修改失败");
             return map;
@@ -143,19 +147,20 @@ public class AdminServiceImplement implements AdminService {
     @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
     public Map<String, Object> insertDoctor(String id, String name, String sex, int dep_no, String title, String password, String description) {
         HashMap<String, Object> map = new HashMap<>();
-        if (id != null && name != null && sex != null && title != null &&
-                password != null && description != null) {
+        if (id != null && name != null && sex != null && title != null && password != null && description != null) {
             if (doctorMapper.getDoctor(id) == null) {
                 Doctor doctor = new Doctor(id, name, sex, dep_no, departmentMapper.getDepartment(dep_no).getDep_name(),
                         title, password, description);
                 doctorMapper.insertDoctor(doctor);
                 map.put("state", "ok");
                 map.put("message", "创建医生信息完成");
-            } else {
+            }
+            else {
                 map.put("state", "fail");
                 map.put("message", "新建失败，请查看是否已存在该医生");
             }
-        } else {
+        }
+        else {
             map.put("state", "fail");
             map.put("message", "新建失败，请查看输入信息是否有效");
         }
@@ -232,12 +237,8 @@ public class AdminServiceImplement implements AdminService {
 
     @Override
     public AdminArrangementResponse getSchedule() {
-        ArrayList<LocalDateTime> times = new ArrayList<>();
         LocalDateTime current = LocalDateTime.now();
-        times.add(current);
-        for (int i = 1; i < 7; i++) {
-            times.add(times.get(0).plusDays(i));
-        }
+        ArrayList<LocalDateTime> times = (ArrayList<LocalDateTime>)IntStream.range(0, 7).mapToObj(i -> current.plusDays(i)).collect(Collectors.toList());
 
         HashMap<Integer, DateJSON> dates = new HashMap<>();
         String now = null;

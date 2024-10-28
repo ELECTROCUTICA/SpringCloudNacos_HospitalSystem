@@ -196,14 +196,9 @@ public class PatientServiceImplement implements PatientService {
     @Cacheable(value = "PatientRecords", keyGenerator = "PatientRecordsGet", cacheManager = "RedisCacheManagerTTL")
     public PatientRecordsResponse getPatientRecords(String p, Patient patient) {
 
-
         int pn;
-        if (p == null || p.isEmpty()) {
-            pn = 1;
-        }
-        else {
-            pn = Integer.parseInt(p);
-        }
+        if (p == null || p.isEmpty()) pn = 1;
+        else pn = Integer.parseInt(p);
 
         int records_count;
         int total_page_count;
@@ -218,11 +213,9 @@ public class PatientServiceImplement implements PatientService {
         }
         Page page = new Page((pn - 1) * 10, 10, pn);
 
-        registrations  = (ArrayList<RegistrationMap>)registrationMapper.getRegistrationsMapByPatientIDForPagination(patient.getId(), page);
+        registrations = (ArrayList<RegistrationMap>)registrationMapper.getRegistrationsMapByPatientIDForPagination(patient.getId(), page);
 
-        for (int i = 0; i < registrations.size(); i++) {
-            registrations.get(i).setVisit_date(registrations.get(i).getVisit_date().substring(0, 10));
-        }
+        registrations.stream().forEach((registration) -> registration.setVisit_date(registration.getVisit_date().substring(0, 10)));
 
         return new PatientRecordsResponse(registrations, records_count, total_page_count, pn);
     }
@@ -358,7 +351,7 @@ public class PatientServiceImplement implements PatientService {
             DoctorArrangementMap map = doctorArrangementMapper.getDoctorArrangementMap(date, doctor_id);
             return map.getDescription();
         }
-        return "";
+        return "暂无简介";
     }
 
     @Override

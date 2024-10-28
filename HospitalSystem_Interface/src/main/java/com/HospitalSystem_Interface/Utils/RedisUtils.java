@@ -25,7 +25,8 @@ public class RedisUtils {
                     String key = new String(cursor.next());
                     keys.add(key);
                 }
-            } catch (Exception e) {
+            }
+            catch (Exception e) {
                 e.printStackTrace();
             }
             return null;
