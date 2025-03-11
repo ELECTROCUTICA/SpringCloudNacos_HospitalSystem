@@ -1,20 +1,18 @@
 package com.HospitalSystem_Patient.Controller;
 
 import com.HospitalSystem_Patient.Service.PatientFeignService;
-import com.HospitalSystem_Pojo.Entity.Patient;
-import com.HospitalSystem_Pojo.Map.DoctorArrangementMap;
+import com.HospitalSystem_Pojo.Entity.*;
+import com.HospitalSystem_Pojo.Map.DoctorScheduleMap;
 import com.HospitalSystem_Pojo.Response.PatientArrangementResponse;
 import com.HospitalSystem_Pojo.Response.PatientRecordsResponse;
-import com.HospitalSystem_Pojo.Utils.ChatGPTAPI;
 import com.HospitalSystem_Pojo.Utils.JWTUtils;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.lang.Nullable;
+import org.springframework.cloud.openfeign.SpringQueryMap;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -44,90 +42,92 @@ public class PatientController {
     }
 
     @PostMapping("/login/loginHandle")
-    public Map<String, Object> loginHandle(@RequestParam("id") String id, @RequestParam("password") String password) {
-        return patientFeignService.loginHandle(id, password);
+    public Map<String, Object> loginHandle(@RequestParam("patient_id") String patient_id, @RequestParam("patient_password") String patient_password) {
+        return patientFeignService.loginHandle(patient_id, patient_password);
     }
 
 
     @PostMapping("/register/registerHandle")
-    public Map<String, Object> registerHandle(@RequestParam("id") String id,
-                                              @RequestParam("name") String name,
-                                              @RequestParam("sex") String sex,
-                                              @RequestParam("birthdate") String birthdate,
-                                              @RequestParam("password") String password) {
-        return patientFeignService.registerHandle(id, name ,sex, birthdate, password);
+    public Map<String, Object> registerHandle(@RequestParam("patient_id") String patient_id,
+                                              @RequestParam("patient_name") String patient_name,
+                                              @RequestParam("patient_sex") String patient_sex,
+                                              @RequestParam("patient_birthdate") String patient_birthdate,
+                                              @RequestParam("patient_phone") String patient_phone,
+                                              @RequestParam("patient_password") String patient_password) {
+        return patientFeignService.registerHandle(patient_id, patient_name, patient_sex, patient_birthdate, patient_phone, patient_password);
     }
 
     @PostMapping("/edit/editHandle")
-    public Map<String, Object> editHandle(@RequestParam("id") String id,
-                                          @RequestParam("name") String name,
-                                          @RequestParam("sex") String sex,
-                                          @RequestParam("birthdate") String birthdate,
-                                          @RequestParam("password") String password,
+    public Map<String, Object> editHandle(@RequestParam("patient_id") String patient_id,
+                                          @RequestParam("patient_name") String patient_name,
+                                          @RequestParam("patient_sex") String patient_sex,
+                                          @RequestParam("patient_birthdate") String patient_birthdate,
+                                          @RequestParam("patient_phone") String patient_phone,
+                                          @RequestParam("patient_password") String patient_password,
                                           HttpServletRequest request) {
 
         String token = request.getHeader("Authorization");
-        return patientFeignService.editHandle(id, name, sex, birthdate, password, JWTUtils.getPatientFromToken(token));
+        return patientFeignService.editHandle(JWTUtils.getPatientFromToken(token).getPatient_id(), patient_name, patient_sex, patient_birthdate, patient_phone, patient_password);
     }
 
 
     @GetMapping("/getRecords")
-    public PatientRecordsResponse getRecords(@RequestParam(value = "p", required = false) String p, HttpServletRequest request) {
+    public Map<String, Object> getRecords(@RequestParam(value = "p", required = false) String p, HttpServletRequest request) {
         String token = request.getHeader("Authorization");
         return patientFeignService.getRecords(p, JWTUtils.getPatientFromToken(token));
     }
 
 
     @PostMapping("/cancelRegistration")
-    public Map<String, Object> cancelRegistration(@RequestParam("reg_id") String reg_id, HttpServletRequest request) {
+    public Map<String, Object> cancelRegistration(@RequestParam("register_id") Integer register_id, HttpServletRequest request) {
         String token = request.getHeader("Authorization");
-        return patientFeignService.cancelRegistration(reg_id, JWTUtils.getPatientFromToken(token));
+        return patientFeignService.cancelRegistration(register_id, JWTUtils.getPatientFromToken(token));
     }
 
 
     @GetMapping("/logout")
     public Map<String, Object> logoutInterface(HttpServletRequest request) {
-        HashMap<String, Object> map = new HashMap<>();
-        map.put("state", "ok");
-        map.put("message", "登出完成");
-        return map;
+        return Map.of(
+                "status", "ok",
+                "message", "登出成功"
+        );
     }
 
-    @GetMapping( "/getArrangement")
-    public PatientArrangementResponse getArrangement() {
-        return patientFeignService.getArrangement();
+    @GetMapping( "/getSchedule")
+    public Map<String, Object> getSchedule() {
+        return patientFeignService.getSchedule();
     }
 
-    @GetMapping("/registration/getDoctorsWorkAtDate")
-    public ArrayList<DoctorArrangementMap> getDoctorsWorkAtDate(@RequestParam("dep_no") Integer dep_no, @RequestParam("date") String date) {
-        return patientFeignService.getDoctorsWorkAtDate(dep_no, date);
+    @GetMapping("/searchDoctor/search")
+    public ArrayList<Doctor> searchDoctor(@RequestParam("keyword") String keyword) {
+        return patientFeignService.searchDoctor(keyword);
+    }
+
+    @GetMapping("/searchDoctor/getDoctorSchedule")
+    ArrayList<DoctorScheduleMap> getDoctorSchedule(@RequestParam("doctor_id") Integer doctor_id, @RequestParam("start_date") String start_date, @RequestParam("end_date")  String end_date) {
+        return patientFeignService.getDoctorSchedule(doctor_id, start_date, end_date);
+    }
+
+    @GetMapping("/registration/getDoctorsWorkAtDateAndNoon")
+    public ArrayList<DoctorScheduleMap> getDoctorsWorkAtDateAndNoon(@RequestParam("date") String date, @RequestParam("noon_id") Integer noon_id, @RequestParam("dep_no") Integer dep_no) {
+        return patientFeignService.getDoctorsWorkAtDateAndNoon(date, noon_id, dep_no);
     }
 
     @GetMapping("/registration/getDescription")
-    public String getDoctorDescription(@RequestParam("doctor_id") String doctor_id, @RequestParam("date") String date) {
-        return patientFeignService.getDoctorDescription(doctor_id, date);
+    public String getDoctorDescription(@RequestParam("doctor_id") Integer doctor_id) {
+        return patientFeignService.getDoctorDescription(doctor_id);
     }
 
     //病人提交挂号预约
     @PostMapping("/registration/submit")
-    public Map<String, Object> submit(@RequestParam("doctor_id") String doctor_id, @RequestParam("date") String date, HttpServletRequest request) {
+    public Map<String, Object> submitRegistration(@RequestParam("doctor_id") Integer doctor_id, @RequestParam("date") String date, @RequestParam("noon_id") Integer noon_id, HttpServletRequest request) {
         String token = request.getHeader("Authorization");
-        return patientFeignService.submit(doctor_id, date, JWTUtils.getPatientFromToken(token));
+        return patientFeignService.submitRegistration(doctor_id, date, noon_id, JWTUtils.getPatientFromToken(token));
     }
 
     @PostMapping("/requestAI")
     public String requestAI(@RequestParam("message") String message) {
         return patientFeignService.requestAI(message);
-    }
-
-    @GetMapping("/test")
-    public String test(@RequestParam("p") String p) {
-        return p;
-    }
-
-    @GetMapping("/getPatientOffline")
-    Patient getPatientOffline(@RequestParam("id") String id) {
-        return patientFeignService.getPatientOffline(id);
     }
 
 

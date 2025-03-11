@@ -6,18 +6,20 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.springframework.stereotype.Component;
 
-import java.sql.Date;
-
+import java.util.Date;
 @Component
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 public class Patient {
-    private String id;
-    private String name;
-    private String sex;
-    private int age;
-    private Date birthdate;
-    private String password;
+    private String patient_id;
+    private String patient_name;
+    private String patient_spell_code;
+    private String patient_sex;
+    private String patient_birthdate;
+    private int patient_age;
+    private String patient_phone;
+    private String patient_password;
+    private String create_time;
 }

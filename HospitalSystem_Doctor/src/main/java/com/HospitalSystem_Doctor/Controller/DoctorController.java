@@ -2,10 +2,7 @@ package com.HospitalSystem_Doctor.Controller;
 
 
 import com.HospitalSystem_Doctor.Service.DoctorFeignService;
-import com.HospitalSystem_Pojo.Entity.Admin;
-import com.HospitalSystem_Pojo.Entity.Doctor;
 import com.HospitalSystem_Pojo.Map.RegistrationMap;
-import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;

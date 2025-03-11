@@ -6,15 +6,18 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.springframework.stereotype.Component;
 
-import java.util.Date;
-
 @Component
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class DoctorArrangement {
-    private Date date;
-    private String doctor_id;
-    private int remain;                         //剩余号源数量
+public class Noon {
+    private int noon_id;
+    private String noon_name;
+    private int begin_time_hour;
+    private int begin_time_minute;
+    private int end_time_hour;
+    private int end_time_minute;
+    private String noon_memo;
+    private int valid_flag;
 }

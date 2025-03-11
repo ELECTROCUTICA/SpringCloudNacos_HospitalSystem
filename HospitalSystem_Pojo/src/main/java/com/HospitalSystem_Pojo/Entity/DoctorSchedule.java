@@ -13,11 +13,17 @@ import java.util.Date;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class Department {
+public class DoctorSchedule {
+    private int schedule_id;
+    private String work_date;
+    private int noon_id;
+    private int doctor_id;
+    private int title_no;
     private int dep_no;
-    private String dep_name;
-    private String dep_description;
+    private int init_register_count;
+    private int remain_register_count;
+    private int append_register_count;
     private int valid_flag;
-    private String create_time;
-    private String create_user;
+    private String submit_user;
+    private String submit_time;
 }

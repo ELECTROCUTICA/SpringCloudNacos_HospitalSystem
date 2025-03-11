@@ -13,10 +13,19 @@ import java.util.Date;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class Registration {//挂号记录
-    private String id;
-    private String doctor_id;
+public class Registration {
+    private int register_id;
+    private int serial_id;
+    private int noon_id;
+    private int doctor_id;
+    private int dep_no;
     private String patient_id;
-    private int status;
-    private Date visit_date;
+    private String patient_name;
+    private String patient_spell_code;
+    private String patient_sex;
+    private String patient_birthdate;
+    private String patient_phone;
+    private int registration_status;
+    private String visit_date;
+    private String register_time;
 }

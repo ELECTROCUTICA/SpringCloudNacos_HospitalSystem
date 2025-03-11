@@ -6,19 +6,25 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.springframework.stereotype.Component;
 
+import java.util.Date;
+
 @Component
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class Doctor {//医生
-    private String id;                      //工号，不能是身份证 考虑到登录系统后如果医生的id和患者的id有一致的情况
-    private String name;
-    private String sex;
+public class Doctor {
+    private int doctor_id;
+    private String doctor_name;
+    private String doctor_spell_code;
+    private String doctor_sex;
     private int dep_no;
     private String dep_name;
-    private String title;       //医生职称
-    private String password;
-    private String description;
+    private int title_no;
+    private String title_name;
+    private String doctor_password;
+    private int valid_flag;
+    private String doctor_description;
+    private String create_time;
+    private String create_user;
 }
-

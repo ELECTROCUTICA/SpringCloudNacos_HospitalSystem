@@ -1,19 +1,16 @@
 package com.HospitalSystem_Interface.Controller;
 
-import com.HospitalSystem_Pojo.Entity.*;
+import com.HospitalSystem_Pojo.Entity.Doctor;
+import com.HospitalSystem_Pojo.Entity.Patient;
 import com.HospitalSystem_Pojo.Map.*;
 import com.HospitalSystem_Pojo.Response.*;
 import com.HospitalSystem_Pojo.Utils.*;
-import com.HospitalSystem_Pojo.JSON.*;
 import com.HospitalSystem_Interface.Service.PatientService;
-import com.HospitalSystem_Pojo.Entity.Patient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.openfeign.SpringQueryMap;
-import org.springframework.lang.Nullable;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Map;
 
 @RestController
@@ -34,76 +31,79 @@ public class PatientInterfaceController {
     }
 
     @PostMapping("/login/loginHandle")
-    public Map<String, Object> loginHandle(@RequestParam("id") String id, @RequestParam("password") String password) {
-        return patientService.loginHandle(id, password);
+    public Map<String, Object> loginHandle(@RequestParam("patient_id") String patient_id, @RequestParam("patient_password") String patient_password) {
+        return patientService.loginHandle(patient_id, patient_password);
     }
 
 
     @PostMapping("/register/registerHandle")
-    public Map<String, Object> registerHandle(@RequestParam("id") String id,
-                                              @RequestParam("name") String name,
-                                              @RequestParam("sex") String sex,
-                                              @RequestParam("birthdate") String birthdate,
-                                              @RequestParam("password") String password) {
-        return patientService.registerHandle(id, name ,sex, birthdate, password);
+    public Map<String, Object> registerHandle(@RequestParam("patient_id") String patient_id,
+                                              @RequestParam("patient_name") String patient_name,
+                                              @RequestParam("patient_sex") String patient_sex,
+                                              @RequestParam("patient_birthdate") String patient_birthdate,
+                                              @RequestParam("patient_phone") String patient_phone,
+                                              @RequestParam("patient_password") String patient_password) {
+        return patientService.registerHandle(patient_id, patient_name, patient_sex, patient_birthdate, patient_phone, patient_password);
     }
 
     @PostMapping("/edit/editHandle")
-    public Map<String, Object> editHandle(@RequestParam("id") String id,
-                                          @RequestParam("name") String name,
-                                          @RequestParam("sex") String sex,
-                                          @RequestParam("birthdate") String birthdate,
-                                          @RequestParam("password") String password,
-                                          @SpringQueryMap Patient patient) {
-        return patientService.editHandle(id, name, sex, birthdate, password, patient);
+    public Map<String, Object> editHandle(@RequestParam("patient_id") String patient_id,
+                                          @RequestParam("patient_name") String patient_name,
+                                          @RequestParam("patient_sex") String patient_sex,
+                                          @RequestParam("patient_birthdate") String patient_birthdate,
+                                          @RequestParam("patient_phone") String patient_phone,
+                                          @RequestParam("patient_password") String patient_password) {
+        return patientService.editHandle(patient_id, patient_name, patient_sex, patient_birthdate, patient_phone, patient_password);
     }
 
 
     @GetMapping("/getRecords")
-    public PatientRecordsResponse getRecords(@RequestParam(value = "p", required = false) String p, @SpringQueryMap Patient patient) {
+    public Map<String, Object> getRecords(@RequestParam(value = "p", required = false) String p, @SpringQueryMap Patient patient) {
         return patientService.getPatientRecords(p, patient);
     }
 
 
     @PostMapping("/cancelRegistration")
-    public Map<String, Object> cancelRegistration(@RequestParam("reg_id") String reg_id, @SpringQueryMap Patient patient) {
-        return patientService.cancelRegistration(reg_id, patient);
+    public Map<String, Object> cancelRegistration(@RequestParam("register_id") Integer register_id, @SpringQueryMap Patient patient) {
+        return patientService.cancelRegistration(register_id, patient);
     }
 
 
-    @GetMapping( "/getArrangement")
-    public PatientArrangementResponse getArrangement() {
-        return patientService.getArrangement();
+    @GetMapping( "/getSchedule")
+    public Map<String, Object> getSchedule() {
+        return patientService.getSchedule();
     }
 
-    @GetMapping("/registration/getDoctorsWorkAtDate")
-    public ArrayList<DoctorArrangementMap> getDoctorsWorkAtDate(@RequestParam("dep_no") Integer dep_no, @RequestParam("date") String date) {
-        return patientService.getDoctorsWorkAtDate(dep_no, date);
+    @GetMapping("/searchDoctor/search")
+    public ArrayList<Doctor> searchDoctor(@RequestParam("keyword") String keyword) {
+        return patientService.searchDoctor(keyword);
+    }
+
+    @GetMapping("/searchDoctor/getDoctorSchedule")
+    public ArrayList<DoctorScheduleMap> getDoctorSchedule(@RequestParam("doctor_id") Integer doctor_id, @RequestParam("start_date") String start_date, @RequestParam("end_date")  String end_date) {
+        return patientService.getDoctorScheduleMapInWeek(doctor_id, start_date, end_date);
+    }
+
+    @GetMapping("/registration/getDoctorsWorkAtDateAndNoon")
+    public ArrayList<DoctorScheduleMap> getDoctorsWorkAtDateAndNoon(@RequestParam("date") String date, @RequestParam("noon_id") Integer noon_id, @RequestParam("dep_no") Integer dep_no) {
+        return patientService.getDoctorsWorkAtDateAndNoon(date, noon_id, dep_no);
     }
 
     @GetMapping("/registration/getDescription")
-    public String getDoctorDescription(@RequestParam("doctor_id") String doctor_id, @RequestParam("date") String date) {
-        return patientService.getDoctorDescription(doctor_id, date);
+    public String getDoctorDescription(@RequestParam("doctor_id") Integer doctor_id) {
+        return patientService.getDoctorDescription(doctor_id);
     }
 
     //病人提交挂号预约
     @PostMapping("/registration/submit")
-    public Map<String, Object> submit(@RequestParam("doctor_id") String doctor_id, @RequestParam("date") String date, @SpringQueryMap Patient patient) {
-        return patientService.registrationSubmit(doctor_id, date, patient);
+    public Map<String, Object> submitRegistration(@RequestParam("doctor_id") Integer doctor_id, @RequestParam("date") String date, @RequestParam("noon_id") Integer noon_id, @SpringQueryMap Patient patient) {
+        return patientService.submitRegistration(doctor_id, date,noon_id, patient);
     }
 
     @PostMapping("/requestAI")
     public String requestAI(@RequestParam("message") String message) {
-        return ChatGPTAPI.sendRequestToChatGPT(message);
+        return DeepSeekAPI.sendRequestToDeepSeek(message, patientService.getDepartmentsStringList());
     }
 
-    @GetMapping("/getStr")
-    public String getStr() {
-        return "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!";
-    }
 
-    @GetMapping("/getPatientOffline")
-    public Patient getPatientOffline(@RequestParam("id") String id) {
-        return patientService.getPatientOffline(id);
-    }
 }

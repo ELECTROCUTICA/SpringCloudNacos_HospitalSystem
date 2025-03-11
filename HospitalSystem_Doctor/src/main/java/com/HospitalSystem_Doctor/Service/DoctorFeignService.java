@@ -1,13 +1,11 @@
 package com.HospitalSystem_Doctor.Service;
 
 
-import com.HospitalSystem_Pojo.Entity.Doctor;
 import com.HospitalSystem_Pojo.Map.RegistrationMap;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.cloud.openfeign.SpringQueryMap;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.Map;

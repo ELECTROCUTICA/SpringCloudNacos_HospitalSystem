@@ -14,7 +14,7 @@ import java.util.concurrent.*;
 public class ChatGPTAPI {
 
     private static final String URL = "https://api.chatanywhere.tech/v1/chat/completions";
-    private static final String API_KEY = *****";
+    private static final String API_KEY = "*****";
 
     public static String sendRequestToChatGPT(String message) {
         ExecutorService threadPool = new ThreadPoolExecutor(Runtime.getRuntime().availableProcessors() / 2,
