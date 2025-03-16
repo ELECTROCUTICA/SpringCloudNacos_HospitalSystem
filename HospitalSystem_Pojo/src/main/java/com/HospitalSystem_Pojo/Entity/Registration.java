@@ -6,6 +6,8 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.springframework.stereotype.Component;
 
+import java.io.Serial;
+import java.io.Serializable;
 import java.util.Date;
 
 @Component
@@ -13,7 +15,11 @@ import java.util.Date;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class Registration {
+public class Registration implements Serializable {
+
+    @Serial
+    private static final long serialVersionUID = 240;
+
     private int register_id;
     private int serial_id;
     private int noon_id;

@@ -44,9 +44,13 @@ public interface RegistrationMapper {
     @Select("select * from v_registration where patient_id = #{patient_id} order by register_id desc limit #{page.start}, #{page.size}")
     List<RegistrationMap> getRegistrationsMapByPatientIDForPagination(@Param("patient_id") String patient_id, @Param("page") Page page);
 
-    @Select("select * from v_registration where doctor_id = #{doctor_id} and visit_date between DATE_SUB(NOW(), INTERVAL 30 DAY) AND NOW() " +
-            "order by case when registration_status = 1 then 0 end, case when registration_status != 1 then register_id end desc")
-    List<RegistrationMap> getRegistrationsMapByDoctorID(@Param("doctor_id") Integer doctor_id);
+    @Select("select * from v_registration vr1 where vr1.doctor_id = #{doctor_id} and vr1.visit_date between DATE_SUB(NOW(), INTERVAL 15 DAY) and NOW() and vr1.registration_status = 1 " +
+            "order by vr1.register_id")
+    List<RegistrationMap> getRegistrationsMapByDoctorID1(@Param("doctor_id") Integer doctor_id);
+
+    @Select("select * from v_registration vr2 where vr2.doctor_id = #{doctor_id} and vr2.visit_date between DATE_SUB(NOW(), INTERVAL 15 DAY) and NOW() and vr2.registration_status != 1 " +
+            "order by vr2.register_id desc")
+    List<RegistrationMap> getRegistrationsMapByDoctorID2(@Param("doctor_id") Integer doctor_id);
 
     @Select("select * from v_registration where visit_date = #{param1} and patient_id = #{param2} and registration_status = 1")
     List<RegistrationMap> getRegistrationsMapByPatientAtDate(@Param("visit_date") String visit_date, @Param("patient_id") String patient_id);

@@ -2,6 +2,7 @@ package com.HospitalSystem_Doctor.Controller;
 
 
 import com.HospitalSystem_Doctor.Service.DoctorFeignService;
+import com.HospitalSystem_Pojo.Entity.Doctor;
 import com.HospitalSystem_Pojo.Map.RegistrationMap;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletRequest;
@@ -10,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -25,11 +27,10 @@ public class DoctorController {
 
 
     @PostMapping("/login/loginHandle")
-    public Map<String, Object> doctorLoginHandle(@RequestParam("id") String id, @RequestParam("password") String password, HttpServletRequest request) {
-        Map<String, Object> map = doctorFeignService.doctorLoginHandle(id, password);
+    public Map<String, Object> doctorLoginHandle(@RequestParam("doctor_id") Integer doctor_id, @RequestParam("doctor_password") String doctor_password, HttpServletRequest request) {
+        Map<String, Object> map = doctorFeignService.doctorLoginHandle(doctor_id, doctor_password);
 
-
-        if (map.get("state").equals("ok")) {
+        if (map.get("status").equals("ok")) {
             String doctorJSONString = map.get("doctor").toString();
             ObjectMapper objectMapper = new ObjectMapper();
             Doctor doctor = null;
@@ -48,19 +49,23 @@ public class DoctorController {
 
     @GetMapping("/getDoctor")
     public Doctor getDoctor(HttpServletRequest request) {
-        return (Doctor)request.getSession(false).getAttribute("Doctor");
+        if (request.getSession(false) != null) {
+            return (Doctor)request.getSession(false).getAttribute("Doctor");
+        }
+        return (Doctor)request.getSession(true).getAttribute("Doctor");
+
     }
 
     //获取病人就诊列表
-    @GetMapping("/getPatientsList")
-    public Map<Integer, RegistrationMap> getPatientsList(HttpServletRequest request) {
+    @GetMapping("/getPatientRegisterList")
+    public ArrayList<RegistrationMap> getPatientRegisterList(HttpServletRequest request) {
         Doctor doctor = (Doctor)request.getSession(false).getAttribute("Doctor");
-        return doctorFeignService.getPatientsList(doctor);
+        return doctorFeignService.getPatientRegisterList(doctor);
     }
 
-    @PostMapping("/changingStatus")
-    public Map<String, Object> changingStatus(@RequestParam("id") String id, @RequestParam("status") int status) {
-        return doctorFeignService.changingStatus(id, status);
+    @PostMapping("/changeRegisterStatus")
+    public Map<String, Object> changeRegisterStatus(@RequestParam("register_id") Integer register_id, @RequestParam("status") Integer status) {
+        return doctorFeignService.changeRegisterStatus(register_id, status);
     }
 
     @GetMapping("logout")
@@ -69,10 +74,10 @@ public class DoctorController {
         if (session.getAttribute("Doctor") != null) {
             session.removeAttribute("Doctor");
         }
-        var data = new HashMap<String, Object>();
-        data.put("state", "ok");
-        data.put("message", "登出成功");
-        return data;
+        return Map.of(
+                "status", "ok",
+                "message", "登出成功"
+        );
     }
 
 }

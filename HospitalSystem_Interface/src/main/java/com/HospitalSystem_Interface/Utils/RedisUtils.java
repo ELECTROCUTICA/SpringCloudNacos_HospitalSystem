@@ -15,9 +15,11 @@ public class RedisUtils {
     @Autowired
     private RedisTemplate<String, Object> redisTemplate;
 
+
+    //如果病人取消预约挂号，则删除缓存
     public void deletePatientRecordsCache(String prefix) {
         ArrayList<String> keys = new ArrayList<>();
-        ScanOptions options = ScanOptions.scanOptions().match("PatientRecords::" + prefix + "*").count(100).build();
+        ScanOptions options = ScanOptions.scanOptions().match("patient_records::" + prefix + "*").count(100).build();
 
         redisTemplate.execute((RedisConnection connection) -> {
             try (Cursor<byte[]> cursor = connection.scan(options)) {
@@ -31,7 +33,6 @@ public class RedisUtils {
             }
             return null;
         });
-
 
         if (!keys.isEmpty()) {
             redisTemplate.delete(keys);

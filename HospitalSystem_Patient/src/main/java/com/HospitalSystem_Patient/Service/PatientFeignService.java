@@ -8,6 +8,7 @@ import com.HospitalSystem_Pojo.Response.PatientArrangementResponse;
 import com.HospitalSystem_Pojo.Response.PatientRecordsResponse;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.cloud.openfeign.SpringQueryMap;
+import org.springframework.lang.Nullable;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
@@ -73,7 +74,7 @@ public interface PatientFeignService {
     Map<String, Object> submitRegistration(@RequestParam("doctor_id") Integer doctor_id, @RequestParam("date") String date, @RequestParam("noon_id") Integer noon_id, @SpringQueryMap Patient patient);
 
     @PostMapping(PREFIX + "/requestAI")
-    String requestAI(@RequestParam("message") String message);
+    Map<String, Object> requestAI(@RequestParam("message") String message);
 
 
 }

@@ -90,5 +90,7 @@ public interface PatientService {
 
     String getDepartmentsStringList();
 
+    ArrayList<DoctorScheduleMap> getDoctorScheduleRecommendation(ArrayList<String> departments);
+
     int getCounts();
 }

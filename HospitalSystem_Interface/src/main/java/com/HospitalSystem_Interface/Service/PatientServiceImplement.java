@@ -1,16 +1,17 @@
 package com.HospitalSystem_Interface.Service;
 
 import com.HospitalSystem_Interface.Utils.DateAndNoon;
+import com.HospitalSystem_Interface.Utils.RedisUtils;
 import com.HospitalSystem_Pojo.Entity.*;
 import com.HospitalSystem_Interface.Mapper.*;
 import com.HospitalSystem_Pojo.JSON.DateJSON;
 import com.HospitalSystem_Pojo.Map.DoctorScheduleMap;
 import com.HospitalSystem_Pojo.Map.RegistrationMap;
 import com.HospitalSystem_Pojo.Utils.ChineseToPinyinUtils;
+import com.HospitalSystem_Pojo.Utils.StringUtils;
 import com.HospitalSystem_Pojo.Utils.JWTUtils;
-import com.HospitalSystem_Pojo.Utils.TimeComplement;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cglib.core.Local;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -42,41 +43,65 @@ public class PatientServiceImplement implements PatientService {
     private DoctorMapper doctorMapper;
     @Autowired
     private NoonMapper noonMapper;
+    @Autowired
+    private RedisUtils redisUtils;
 
 //    @Autowired
 //    private RedisUtils redisUtils;
 
     @Override
-    public Map<String, Object> loginHandle(String patient_id, String patient_password) {
+    public Map<String, Object> loginHandle(String patient_id, String patient_password) {        //允许身份证号，手机号登录
 
-        Patient patient = patientMapper.getPatient(patient_id);
+        HashMap<String, Object> data = new HashMap<>();
+        Patient patient_by_id = patientMapper.getPatient(patient_id);
 
-        HashMap<String, Object> map = new HashMap<>();
 
-        if (patient != null && patient.getPatient_password().equals(patient_password)) {
+        if (patient_by_id != null && patient_by_id.getPatient_password().equals(patient_password)) {
 
             var payLoad = new HashMap<String, Object>();
-            payLoad.put("patient_id", patient.getPatient_id());
-            payLoad.put("patient_name", patient.getPatient_name());
-            payLoad.put("patient_spell_code", patient.getPatient_spell_code());
-            payLoad.put("patient_sex", patient.getPatient_sex());
-            payLoad.put("patient_birthdate", patient.getPatient_birthdate());
-            payLoad.put("patient_age", patient.getPatient_age());
-            payLoad.put("patient_phone", patient.getPatient_phone());
-            payLoad.put("patient_password", patient.getPatient_password());
-            payLoad.put("create_time", patient.getCreate_time());
+            payLoad.put("patient_id", patient_by_id.getPatient_id());
+            payLoad.put("patient_name", patient_by_id.getPatient_name());
+            payLoad.put("patient_spell_code", patient_by_id.getPatient_spell_code());
+            payLoad.put("patient_sex", patient_by_id.getPatient_sex());
+            payLoad.put("patient_birthdate", patient_by_id.getPatient_birthdate());
+            payLoad.put("patient_age", patient_by_id.getPatient_age());
+            payLoad.put("patient_phone", patient_by_id.getPatient_phone());
+            payLoad.put("patient_password", patient_by_id.getPatient_password());
+            payLoad.put("create_time", patient_by_id.getCreate_time());
 
             String token = JWTUtils.createToken(payLoad);
 
-            map.put("status", "ok");
-            map.put("message", "登录成功");
-            map.put("patient_token", token);
+            data.put("status", "ok");
+            data.put("message", "登录成功");
+            data.put("patient_token", token);
+            return data;
         }
-        else {
-            map.put("status", "fail");
-            map.put("message", "登陆失败，请检查您输入的账号和密码");
+
+        Patient patient_by_phone = patientMapper.getPatientByPhone(patient_id);
+        if (patient_by_phone != null && patient_by_phone.getPatient_password().equals(patient_password)) {
+
+            var payLoad = new HashMap<String, Object>();
+            payLoad.put("patient_id", patient_by_phone.getPatient_id());
+            payLoad.put("patient_name", patient_by_phone.getPatient_name());
+            payLoad.put("patient_spell_code", patient_by_phone.getPatient_spell_code());
+            payLoad.put("patient_sex", patient_by_phone.getPatient_sex());
+            payLoad.put("patient_birthdate", patient_by_phone.getPatient_birthdate());
+            payLoad.put("patient_age", patient_by_phone.getPatient_age());
+            payLoad.put("patient_phone", patient_by_phone.getPatient_phone());
+            payLoad.put("patient_password", patient_by_phone.getPatient_password());
+            payLoad.put("create_time", patient_by_phone.getCreate_time());
+
+            String token = JWTUtils.createToken(payLoad);
+
+            data.put("status", "ok");
+            data.put("message", "登录成功");
+            data.put("patient_token", token);
+            return data;
         }
-        return map;
+
+        data.put("status", "fail");
+        data.put("message", "登陆失败，请检查您输入的账号和密码");
+        return data;
     }
 
     @Override
@@ -107,11 +132,6 @@ public class PatientServiceImplement implements PatientService {
     @Override
     public Map<String, Object> getRegistrationsToday(String dateParam, Patient patient) {
         ArrayList<RegistrationMap> registrations = (ArrayList<RegistrationMap>)registrationMapper.getRegistrationsMapByPatientAtDate(dateParam, patient.getPatient_id());
-        if (registrations == null || registrations.isEmpty()) {
-            return Map.of(
-                    "registrations", new ArrayList<RegistrationMap>()
-            );
-        }
 
 //        var i = 0;
 //        for (RegistrationMap item : ) {
@@ -137,38 +157,53 @@ public class PatientServiceImplement implements PatientService {
 
     @Override
     public Map<String, Object> registerHandle(String patient_id, String patient_name, String patient_sex, String patient_birthdate, String patient_phone, String patient_password) {
+        if (!StringUtils.isStringNullOrEmpty(patient_id) && !StringUtils.isStringNullOrEmpty(patient_name) &&
+                !StringUtils.isStringNullOrEmpty(patient_sex) && !StringUtils.isStringNullOrEmpty(patient_birthdate) &&
+                !StringUtils.isStringNullOrEmpty(patient_phone) && !StringUtils.isStringNullOrEmpty(patient_password)) {
 
-        Patient patient = patientMapper.getPatient(patient_id);
-        HashMap<String, Object> map = new HashMap<>();
+            Patient patient = patientMapper.getPatient(patient_id);
+            Patient patient2 = patientMapper.getPatientByPhone(patient_phone);
+            HashMap<String, Object> map = new HashMap<>();
 
-        if (patient != null) {
-            map.put("status", "duplicate");
-            map.put("message", "注册失败，该身份账号已存在");
-            return map;
-        }
+            if (patient != null) {
+                map.put("status", "duplicate");
+                map.put("message", "注册失败，该身份证已经注册过账号");
+                return map;
+            }
+            if (patient2 != null) {
+                map.put("status", "duplicate");
+                map.put("message", "注册失败，该手机号已经绑定已注册的账号");
+                return map;
+            }
 
-        if (patient_id != null && !patient_id.isEmpty() && patient_name != null && !patient_name.isEmpty()
-                && patient_sex != null && !patient_sex.isEmpty() && patient_birthdate != null && !patient_birthdate.isEmpty() &&
-                patient_password != null && !patient_password.isEmpty()) {
-            patient = new Patient(patient_id, patient_name, ChineseToPinyinUtils.convertNameToPinYin(patient_name),
+            if (patient_phone.length() != 11) {
+                map.put("status", "fail");
+                map.put("message", "注册失败，请输入正确的手机号码");
+                return map;
+            }
+
+            Patient new_patient = new Patient(patient_id, patient_name, ChineseToPinyinUtils.convertNameToPinYin(patient_name),
                     patient_sex, patient_birthdate, 0, patient_phone, patient_password, null);
-            patientMapper.insertPatient(patient);
+            patientMapper.insertPatient(new_patient);
             map.put("status", "ok");
             map.put("message", "注册成功，即将返回登录页");
             return map;
         }
         else {
-            map.put("status", "fail");
-            map.put("message", "注册失败，请检查您的输入是否有误");
-            return map;
+            return Map.of(
+                    "status", "fail",
+                    "message", "注册失败，请检查您的输入是否有误或为空"
+            );
         }
     }
 
 
     @Override
     @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
-    //@Cacheable(value = "PatientRecords", keyGenerator = "PatientRecordsGet", cacheManager = "RedisCacheManagerTTL")
+    @Cacheable(cacheNames = "patient_records", keyGenerator = "PatientRecordsGet", cacheManager = "RedisCacheManagerTTL")
     public Map<String ,Object> getPatientRecords(String p, Patient patient) {
+
+        HashMap<String, Object> data = new HashMap<>();
 
         int pn;
         if (p == null || p.isEmpty()) pn = 1;
@@ -189,36 +224,37 @@ public class PatientServiceImplement implements PatientService {
 
         //registrations.stream().forEach((registration) -> registration.setVisit_date(registration.getVisit_date().substring(0, 10)));
 
-        return Map.of(
-                "current", pn,
-                "pages_count", total_page_count,
-                "records_count", records_count,
-                "registrations", registrations
-        );
+
+        data.put("current", pn);
+        data.put("pages_count", total_page_count);
+        data.put("records_count", records_count);
+        data.put("registrations", registrations);
+
+        return data;
     }
 
     @Override
     @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
     public Map<String, Object> cancelRegistration(Integer register_id, Patient patient) {
-        //redisUtils.deletePatientRecordsCache(patient.getId());
+        redisUtils.deletePatientRecordsCache(patient.getPatient_id());
 
-        HashMap<String, Object> map = new HashMap<>();
+        HashMap<String, Object> response = new HashMap<>();
         Registration updated = registrationMapper.getRegistration(register_id);
         if (register_id != null && updated.getRegistration_status() == 1) {
-            updated.setRegistration_status(0);
+            updated.setRegistration_status(-1);
             registrationMapper.updateRegistration(updated);
-            map.put("status", "ok");
-            map.put("message", "取消预约成功");
+            response.put("status", "ok");
+            response.put("message", "取消预约成功");
         }
         else if (updated.getRegistration_status() != 1) {
-            map.put("status", "fail");
-            map.put("message", "该挂号状态已经被取消或已经被完成");
+            response.put("status", "fail");
+            response.put("message", "该挂号状态已经被取消或已经被完成");
         }
         else {
-            map.put("status", "fail");
-            map.put("message", "无效的挂号信息");
+            response.put("status", "fail");
+            response.put("message", "无效的挂号信息");
         }
-        return map;
+        return response;
     }
 
 
@@ -227,16 +263,38 @@ public class PatientServiceImplement implements PatientService {
     public Map<String, Object> editHandle(String patient_id, String patient_name, String patient_sex, String patient_birthdate, String patient_phone, String patient_password) {
         HashMap<String, Object> map = new HashMap<>();
 
-        if (patient_id == null || patient_id.isEmpty()) {
+        if (StringUtils.isStringNullOrEmpty(patient_id)) {
             return Map.of(
                     "status", "fail",
                     "message", "修改失败，无效的登录状态"
             );
         }
 
-        if (patient_name != null && !patient_name.isEmpty()
-                && patient_sex != null && !patient_sex.isEmpty() && patient_birthdate != null && !patient_birthdate.isEmpty() &&
-                patient_password != null && !patient_password.isEmpty()) {
+        if (!StringUtils.isStringNullOrEmpty(patient_name) && !StringUtils.isStringNullOrEmpty(patient_sex) &&
+                !StringUtils.isStringNullOrEmpty(patient_birthdate) && !StringUtils.isStringNullOrEmpty(patient_phone) &&
+                !StringUtils.isStringNullOrEmpty(patient_password)) {
+
+            Patient orginal_patient = patientMapper.getPatient(patient_id);
+            if (orginal_patient.getPatient_name().equals(patient_name) && orginal_patient.getPatient_sex().equals(patient_sex) &&
+                    orginal_patient.getPatient_birthdate().equals(patient_birthdate) && orginal_patient.getPatient_phone().equals(patient_phone) &&
+                    orginal_patient.getPatient_password().equals(patient_password)) {
+                map.put("status", "no_changes");
+                map.put("message", "您没有对个人信息作出任何修改");
+                return map;
+            }
+
+            if (patient_phone.length() != 11) {
+                map.put("status", "fail");
+                map.put("message", "修改失败，请输入正确的手机号码");
+                return map;
+            }
+
+            Patient patient2 = patientMapper.getPatientByPhone(patient_phone);
+            if (patient2 != null) {
+                map.put("status", "fail");
+                map.put("message", "修改失败，手机号已经绑定其他账号");
+                return map;
+            }
 
             Patient patient_update = new Patient(patient_id, patient_name, ChineseToPinyinUtils.convertNameToPinYin(patient_name), patient_sex,
                     patient_birthdate, 0, patient_phone, patient_password, null);
@@ -330,7 +388,6 @@ public class PatientServiceImplement implements PatientService {
     public Map<String, Object> submitRegistration(Integer doctor_id, String visit_date, Integer noon_id, Patient patient) {
         //redisUtils.deletePatientRecordsCache(patient.getId());
 
-        HashMap<String, Object> map = new HashMap<>();
 
         if (patient != null && patient.getPatient_id() != null) {
 
@@ -397,7 +454,7 @@ public class PatientServiceImplement implements PatientService {
 
     @Override
     public String getDepartmentsStringList() {
-        StringBuilder text = new StringBuilder(64);
+        StringBuilder text = new StringBuilder(128);
         ArrayList<Department> departments = (ArrayList<Department>)departmentMapper.getAllDepartments();
         for (var i = 0; i < departments.size(); i++) {
             text.append(departments.get(i).getDep_name());
@@ -406,5 +463,15 @@ public class PatientServiceImplement implements PatientService {
             }
         }
         return new String(text);
+    }
+
+    @Override
+    public ArrayList<DoctorScheduleMap> getDoctorScheduleRecommendation(ArrayList<String> departments) {
+        if (departments == null || departments.isEmpty()) {
+            return new ArrayList<>();
+        }
+        String dep_name = departments.get(0);           //暂时只获取DeepSeek提出的一个科室推荐
+        return (ArrayList<DoctorScheduleMap>)doctorScheduleMapper.getRecommendedSchedule(dep_name);
+
     }
 }

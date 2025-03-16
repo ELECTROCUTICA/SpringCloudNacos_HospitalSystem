@@ -7,8 +7,11 @@ import com.HospitalSystem_Pojo.Response.PatientArrangementResponse;
 import com.HospitalSystem_Pojo.Response.PatientRecordsResponse;
 import com.HospitalSystem_Pojo.Utils.JWTUtils;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.constraints.Size;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.openfeign.SpringQueryMap;
+import org.springframework.lang.Nullable;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
@@ -126,9 +129,10 @@ public class PatientController {
     }
 
     @PostMapping("/requestAI")
-    public String requestAI(@RequestParam("message") String message) {
+    public Map<String, Object> requestAI(@RequestParam("message") String message) {
         return patientFeignService.requestAI(message);
     }
+
 
 
 }

@@ -22,6 +22,9 @@ public interface PatientMapper {
     @Select("select * from V_Patient where patient_id = #{patient_id}")
     Patient getPatient(@Param("patient_id") String patient_id);
 
+    @Select("select * from V_Patient where patient_phone = #{patient_phone}")
+    Patient getPatientByPhone(@Param("patient_phone") String patient_phone);
+
     @Select("select * from V_Patient where patient_id like CONCAT('%', #{keyword}, '%') or patient_name like CONCAT('%', #{keyword}, '%') or patient_spell_code like CONCAT('%', #{keyword}, '%')")
     List<Patient> searchPatientsByKeyword(@Param("keyword") String keyword);
 

@@ -5,16 +5,16 @@ import com.HospitalSystem_Pojo.Map.*;
 import com.HospitalSystem_Pojo.Response.*;
 import com.fasterxml.jackson.core.JsonProcessingException;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
 public interface DoctorService {
 
-    List<Doctor> getDoctorsWorkAtDate(int dep_no, String date);
 
-    Map<String, Object> doctorLoginHandle(String id, String password);
+    Map<String, Object> doctorLoginHandle(Integer doctor_id, String doctor_password);
 
-    Map<Integer, RegistrationMap> getPatientsList(Doctor doctor);
+    ArrayList<RegistrationMap> getPatientRegisterList(Doctor doctor);
 
-    Map<String, Object> changingStatus(String id, int status);
+    Map<String, Object> changeRegisterStatus(Integer register_id, Integer status);
 }

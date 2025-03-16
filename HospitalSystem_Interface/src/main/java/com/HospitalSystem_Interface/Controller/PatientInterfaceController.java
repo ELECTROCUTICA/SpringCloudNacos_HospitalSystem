@@ -1,5 +1,6 @@
 package com.HospitalSystem_Interface.Controller;
 
+import com.HospitalSystem_Interface.Mapper.DoctorScheduleMapper;
 import com.HospitalSystem_Pojo.Entity.Doctor;
 import com.HospitalSystem_Pojo.Entity.Patient;
 import com.HospitalSystem_Pojo.Map.*;
@@ -8,9 +9,11 @@ import com.HospitalSystem_Pojo.Utils.*;
 import com.HospitalSystem_Interface.Service.PatientService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.openfeign.SpringQueryMap;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Map;
 
 @RestController
@@ -19,6 +22,8 @@ public class PatientInterfaceController {
 
     @Autowired
     private PatientService patientService;
+    @Autowired
+    private DoctorScheduleMapper doctorScheduleMapper;
 
     @GetMapping("/getServerTime")
     public Map<String, Object> getServerTime() {
@@ -101,8 +106,20 @@ public class PatientInterfaceController {
     }
 
     @PostMapping("/requestAI")
-    public String requestAI(@RequestParam("message") String message) {
-        return DeepSeekAPI.sendRequestToDeepSeek(message, patientService.getDepartmentsStringList());
+    public Map<String, Object> requestAI(@RequestParam("message") String message) {
+        HashMap<String, Object> data = DeepSeekAPI.sendRequestToDeepSeek(message, patientService.getDepartmentsStringList());
+        ArrayList<DoctorScheduleMap> rec = patientService.getDoctorScheduleRecommendation((ArrayList<String>) data.get("departments"));
+
+        HashMap<String, Object> response = new HashMap<>();
+        response.put("message", data.get("message"));
+        if (rec.isEmpty()) {
+            response.put("data_count", 0);
+        }
+        else {
+            response.put("recommendation", rec.get(0));         //暂时只获取第一个查询到的号源查询结果
+            response.put("data_count", rec.size());
+        }
+        return response;
     }
 
 

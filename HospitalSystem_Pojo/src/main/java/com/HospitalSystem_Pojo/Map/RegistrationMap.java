@@ -13,7 +13,10 @@ import java.util.Date;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class RegistrationMap {
+public class RegistrationMap implements Serializable {
+
+    @Serial
+    private static final long serialVersionUID = 242;
 
     private int register_id;
     private int serial_id;

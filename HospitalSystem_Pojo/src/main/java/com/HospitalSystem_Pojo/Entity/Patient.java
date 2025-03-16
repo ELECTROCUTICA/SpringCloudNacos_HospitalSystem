@@ -5,14 +5,21 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.springframework.stereotype.Component;
+import org.springframework.validation.annotation.Validated;
 
+import java.io.Serial;
+import java.io.Serializable;
 import java.util.Date;
 @Component
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class Patient {
+@Validated
+public class Patient implements Serializable {
+    @Serial
+    private static final long serialVersionUID = 241;
+
     private String patient_id;
     private String patient_name;
     private String patient_spell_code;
