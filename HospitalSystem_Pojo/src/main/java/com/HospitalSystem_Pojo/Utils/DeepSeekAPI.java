@@ -18,10 +18,10 @@ import java.util.regex.Pattern;
 public class DeepSeekAPI {              //DeepSeek V3/R1 API
 
     private static final String URL = "https://api.deepseek.com";   //官网URL
-    private static final String API_KEY = "sk-0640932954204d5aae3262a86f801f0c";            //官网KEY
+    private static final String API_KEY = "**";            //官网KEY
 
     private static final String URL_Aliyun = "https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions";  //阿里云URL
-    private static final String API_KEY_Aliyun = "sk-20dd368863a347b89c494f6c1a159c2f";     //阿里云KEY
+    private static final String API_KEY_Aliyun = "**";     //阿里云KEY
 
     private static ExecutorService threadPool = new ThreadPoolExecutor(Runtime.getRuntime().availableProcessors(),
             Runtime.getRuntime().availableProcessors(),
