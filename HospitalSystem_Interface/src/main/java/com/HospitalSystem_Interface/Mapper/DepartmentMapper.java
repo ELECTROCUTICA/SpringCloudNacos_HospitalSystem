@@ -26,7 +26,7 @@ public interface DepartmentMapper {
     @Select("select * from Doctor join Department on Doctor.dep_no = Department.dep_no where department.dep_name = #{dep_name}")
     List<Doctor> getDoctorsByDepartmentName(@Param("dep_name") String dep_name);
 
-    @Update("update Doctor set dep_no = #{param2} where dep_no = #{param1}")
+    @Update("update Doctor set dep_no = #{target} where dep_no = #{source}")
     void transferDoctorsToDepartment(@Param("source") int source, @Param("target") int target);
 
     @Select("select * from Department limit #{page.start}, #{page.size}")

@@ -40,10 +40,10 @@ public interface DoctorMapper {
     @Select("select * from V_Doctor where doctor_id like CONCAT('%', #{keyword}, '%') or doctor_name like CONCAT('%', #{keyword}, '%') or doctor_spell_code like CONCAT('%', #{keyword}, '%')")
     List<Doctor> searchDoctorsByKeyWord(@Param("keyword") String keyword);
 
-    @Select("select * from V_Doctor d where d.dep_no = #{param1} and d.doctor_id not in (select ds.doctor_id from DoctorSchedule ds where ds.work_date = #{param2} and ds.noon_id = #{param3} and ds.valid_flag = 1)")
+    @Select("select * from V_Doctor d where d.dep_no = #{param1} and d.valid_flag = 1 and d.doctor_id not in (select ds.doctor_id from DoctorSchedule ds where ds.work_date = #{param2} and ds.noon_id = #{param3} and ds.valid_flag = 1)")
     List<Doctor> getDoctorsNoWorkAtDateAndNoon(@Param("dep_no") Integer dep_no, @Param("work_date") String work_date, @Param("noon_id") Integer noon_id);
 
-    @Select("select * from V_Doctor d where d.dep_no = #{param1} and d.doctor_id in (select ds.doctor_id from DoctorSchedule ds where ds.work_date = #{param2} and ds.noon_id = #{param3} and ds.valid_flag = 1)")
+    @Select("select * from V_Doctor d where d.dep_no = #{param1} and d.valid_flag = 1 and d.doctor_id in (select ds.doctor_id from DoctorSchedule ds where ds.work_date = #{param2} and ds.noon_id = #{param3} and ds.valid_flag = 1)")
     List<Doctor> getDoctorsWorkAtDateAndNoon(@Param("dep_no") Integer dep_no, @Param("work_date") String work_date, @Param("noon_id") Integer noon_id);
 
     @Select("select * from V_Doctor d where d.doctor_name like CONCAT('%', #{keyword}, '%') or d.doctor_spell_code like CONCAT('%', #{keyword}, '%') and valid_flag = 1")

@@ -13,6 +13,7 @@ import com.HospitalSystem_Pojo.Utils.JWTUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -156,6 +157,7 @@ public class PatientServiceImplement implements PatientService {
 
 
     @Override
+    @Transactional(propagation = Propagation.REQUIRED, isolation = Isolation.REPEATABLE_READ, rollbackFor = Exception.class)
     public Map<String, Object> registerHandle(String patient_id, String patient_name, String patient_sex, String patient_birthdate, String patient_phone, String patient_password) {
         if (!StringUtils.isStringNullOrEmpty(patient_id) && !StringUtils.isStringNullOrEmpty(patient_name) &&
                 !StringUtils.isStringNullOrEmpty(patient_sex) && !StringUtils.isStringNullOrEmpty(patient_birthdate) &&
@@ -163,31 +165,37 @@ public class PatientServiceImplement implements PatientService {
 
             Patient patient = patientMapper.getPatient(patient_id);
             Patient patient2 = patientMapper.getPatientByPhone(patient_phone);
-            HashMap<String, Object> map = new HashMap<>();
+            HashMap<String, Object> data = new HashMap<>();
 
             if (patient != null) {
-                map.put("status", "duplicate");
-                map.put("message", "注册失败，该身份证已经注册过账号");
-                return map;
+                data.put("status", "duplicate");
+                data.put("message", "注册失败，该身份证已经注册过账号");
+                return data;
             }
             if (patient2 != null) {
-                map.put("status", "duplicate");
-                map.put("message", "注册失败，该手机号已经绑定已注册的账号");
-                return map;
+                data.put("status", "duplicate");
+                data.put("message", "注册失败，该手机号已经绑定已注册的账号");
+                return data;
             }
 
             if (patient_phone.length() != 11) {
-                map.put("status", "fail");
-                map.put("message", "注册失败，请输入正确的手机号码");
-                return map;
+                data.put("status", "fail");
+                data.put("message", "注册失败，请输入正确的手机号码");
+                return data;
+            }
+
+            if (patient_password.length() < 3 || patient_password.length() > 18) {
+                data.put("status", "fail");
+                data.put("message", "注册失败，密码长度不得小于3位，大于18位");
+                return data;
             }
 
             Patient new_patient = new Patient(patient_id, patient_name, ChineseToPinyinUtils.convertNameToPinYin(patient_name),
                     patient_sex, patient_birthdate, 0, patient_phone, patient_password, null);
             patientMapper.insertPatient(new_patient);
-            map.put("status", "ok");
-            map.put("message", "注册成功，即将返回登录页");
-            return map;
+            data.put("status", "ok");
+            data.put("message", "注册成功，即将返回登录页");
+            return data;
         }
         else {
             return Map.of(
@@ -199,7 +207,6 @@ public class PatientServiceImplement implements PatientService {
 
 
     @Override
-    @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
     @Cacheable(cacheNames = "patient_records", keyGenerator = "PatientRecordsGet", cacheManager = "RedisCacheManagerTTL")
     public Map<String ,Object> getPatientRecords(String p, Patient patient) {
 
@@ -222,9 +229,6 @@ public class PatientServiceImplement implements PatientService {
         }
         registrations = (ArrayList<RegistrationMap>)registrationMapper.getRegistrationsMapByPatientIDForPagination(patient.getPatient_id(), new Page((pn - 1) * 10, 10, pn));
 
-        //registrations.stream().forEach((registration) -> registration.setVisit_date(registration.getVisit_date().substring(0, 10)));
-
-
         data.put("current", pn);
         data.put("pages_count", total_page_count);
         data.put("records_count", records_count);
@@ -234,7 +238,7 @@ public class PatientServiceImplement implements PatientService {
     }
 
     @Override
-    @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
+    @Transactional(propagation = Propagation.REQUIRED, isolation = Isolation.REPEATABLE_READ, rollbackFor = Exception.class)
     public Map<String, Object> cancelRegistration(Integer register_id, Patient patient) {
         redisUtils.deletePatientRecordsCache(patient.getPatient_id());
 
@@ -259,9 +263,9 @@ public class PatientServiceImplement implements PatientService {
 
 
     @Override
-    @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
+    @Transactional(propagation = Propagation.REQUIRED, isolation = Isolation.REPEATABLE_READ, rollbackFor = Exception.class)
     public Map<String, Object> editHandle(String patient_id, String patient_name, String patient_sex, String patient_birthdate, String patient_phone, String patient_password) {
-        HashMap<String, Object> map = new HashMap<>();
+        HashMap<String, Object> data = new HashMap<>();
 
         if (StringUtils.isStringNullOrEmpty(patient_id)) {
             return Map.of(
@@ -278,36 +282,36 @@ public class PatientServiceImplement implements PatientService {
             if (orginal_patient.getPatient_name().equals(patient_name) && orginal_patient.getPatient_sex().equals(patient_sex) &&
                     orginal_patient.getPatient_birthdate().equals(patient_birthdate) && orginal_patient.getPatient_phone().equals(patient_phone) &&
                     orginal_patient.getPatient_password().equals(patient_password)) {
-                map.put("status", "no_changes");
-                map.put("message", "您没有对个人信息作出任何修改");
-                return map;
+                data.put("status", "no_changes");
+                data.put("message", "您没有对个人信息作出任何修改");
+                return data;
             }
 
             if (patient_phone.length() != 11) {
-                map.put("status", "fail");
-                map.put("message", "修改失败，请输入正确的手机号码");
-                return map;
+                data.put("status", "fail");
+                data.put("message", "修改失败，请输入正确的手机号码");
+                return data;
             }
 
             Patient patient2 = patientMapper.getPatientByPhone(patient_phone);
             if (patient2 != null) {
-                map.put("status", "fail");
-                map.put("message", "修改失败，手机号已经绑定其他账号");
-                return map;
+                data.put("status", "fail");
+                data.put("message", "修改失败，手机号已经绑定其他账号");
+                return data;
             }
 
             Patient patient_update = new Patient(patient_id, patient_name, ChineseToPinyinUtils.convertNameToPinYin(patient_name), patient_sex,
                     patient_birthdate, 0, patient_phone, patient_password, null);
             patientMapper.updatePatient(patient_update);
 
-            map.put("status", "ok");
-            map.put("message", "修改成功，请重新登录");
+            data.put("status", "ok");
+            data.put("message", "修改成功，请重新登录");
         }
         else {
-            map.put("status", "fail");
-            map.put("message", "修改失败，请检查您的输入是否有空或有误");
+            data.put("status", "fail");
+            data.put("message", "修改失败，请检查您的输入是否有空或有误");
         }
-        return map;
+        return data;
     }
 
     @Override
@@ -321,7 +325,7 @@ public class PatientServiceImplement implements PatientService {
 
         ArrayList<Noon> all_valid_noons = (ArrayList<Noon>)noonMapper.getAllValidNoon();
         ArrayList<DateAndNoon> dan_list = new ArrayList<>();
-        for (int i = 0; i < 7; i++) {
+        for (int i = 0; i < times.size(); i++) {
             String dayOfWeek = switch (times.get(i).getDayOfWeek()) {
                 case MONDAY -> "周一";
                 case TUESDAY -> "周二";
@@ -384,16 +388,15 @@ public class PatientServiceImplement implements PatientService {
     }
 
     @Override
-    @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
-    public Map<String, Object> submitRegistration(Integer doctor_id, String visit_date, Integer noon_id, Patient patient) {
-        //redisUtils.deletePatientRecordsCache(patient.getId());
+    @Transactional(propagation = Propagation.REQUIRED, isolation = Isolation.REPEATABLE_READ, timeout = 12, rollbackFor = Exception.class)
+    public Map<String, Object> submitRegistration(Integer schedule_id, Integer doctor_id, String visit_date, Integer noon_id, Patient patient) {
+        if (!StringUtils.isStringNullOrEmpty(patient.getPatient_id()) && schedule_id != null && doctor_id != null && !StringUtils.isStringNullOrEmpty(visit_date) && noon_id != null) {
+            redisUtils.deletePatientRecordsCache(patient.getPatient_id());
 
-
-        if (patient != null && patient.getPatient_id() != null) {
-
+            //对于一名患者，不允许在同一天，同一午别挂同一名医生的号
             ArrayList<Registration> collections = (ArrayList<Registration>)registrationMapper.getRegistrationByPatientAtDateAndNoon(patient.getPatient_id(), visit_date, noon_id);
             for (Registration registration : collections) {
-                if (doctor_id.equals(registration.getDoctor_id())  && registration.getRegistration_status() == 1) {
+                if (doctor_id == registration.getDoctor_id() && visit_date.equals(registration.getVisit_date()) && noon_id == registration.getNoon_id() && registration.getRegistration_status() == 1) {
                     return Map.of(
                             "status", "duplicate",
                             "message", "挂号失败，请不要重复预约"
@@ -401,8 +404,8 @@ public class PatientServiceImplement implements PatientService {
                 }
             }
 
-            DoctorSchedule ds = doctorScheduleMapper.getValidDoctorScheduleForUpdate(visit_date, noon_id, doctor_id);       //锁定
-            //DoctorScheduleMap ds = doctorScheduleMapper.getValidDoctorScheduleMap(visit_date, noon_id, doctor_id);       //查视图 不锁定
+            //DoctorScheduleMap v_ds = doctorScheduleMapper.getValidDoctorScheduleMap(visit_date, noon_id, doctor_id);       //查视图 不锁定
+            DoctorSchedule ds = doctorScheduleMapper.getDoctorScheduleForUpdate(schedule_id);              //查表 锁定行
             if (ds.getRemain_register_count() > 0) {
                 Doctor doctor = doctorMapper.getDoctor(doctor_id);
 

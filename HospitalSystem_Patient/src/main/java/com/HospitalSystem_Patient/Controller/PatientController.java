@@ -3,19 +3,12 @@ package com.HospitalSystem_Patient.Controller;
 import com.HospitalSystem_Patient.Service.PatientFeignService;
 import com.HospitalSystem_Pojo.Entity.*;
 import com.HospitalSystem_Pojo.Map.DoctorScheduleMap;
-import com.HospitalSystem_Pojo.Response.PatientArrangementResponse;
-import com.HospitalSystem_Pojo.Response.PatientRecordsResponse;
 import com.HospitalSystem_Pojo.Utils.JWTUtils;
 import jakarta.servlet.http.HttpServletRequest;
-import jakarta.validation.constraints.Size;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cloud.openfeign.SpringQueryMap;
-import org.springframework.lang.Nullable;
-import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Map;
 
 @RestController
@@ -123,9 +116,9 @@ public class PatientController {
 
     //病人提交挂号预约
     @PostMapping("/registration/submit")
-    public Map<String, Object> submitRegistration(@RequestParam("doctor_id") Integer doctor_id, @RequestParam("date") String date, @RequestParam("noon_id") Integer noon_id, HttpServletRequest request) {
+    public Map<String, Object> submitRegistration(@RequestParam("schedule_id") Integer schedule_id, @RequestParam("doctor_id") Integer doctor_id, @RequestParam("date") String date, @RequestParam("noon_id") Integer noon_id, HttpServletRequest request) {
         String token = request.getHeader("Authorization");
-        return patientFeignService.submitRegistration(doctor_id, date, noon_id, JWTUtils.getPatientFromToken(token));
+        return patientFeignService.submitRegistration(schedule_id, doctor_id, date, noon_id, JWTUtils.getPatientFromToken(token));
     }
 
     @PostMapping("/requestAI")

@@ -16,7 +16,6 @@ public class PatientRecordsGetKeyGenerator implements KeyGenerator {
         String p = (String)entity[0];
         Patient patient = (Patient)entity[1];
 
-        String keyName = String.format("%s-%s", patient.getPatient_id(), p);
-        return keyName;
+        return String.format("%s-%s", patient.getPatient_id(), p);
     }
 }

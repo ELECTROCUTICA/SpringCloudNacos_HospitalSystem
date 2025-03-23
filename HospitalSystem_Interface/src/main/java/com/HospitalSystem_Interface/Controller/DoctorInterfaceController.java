@@ -2,7 +2,6 @@ package com.HospitalSystem_Interface.Controller;
 
 import com.HospitalSystem_Pojo.Entity.*;
 import com.HospitalSystem_Pojo.Map.*;
-import com.HospitalSystem_Pojo.Response.*;
 import com.HospitalSystem_Pojo.Utils.*;
 import com.HospitalSystem_Pojo.JSON.*;
 import com.HospitalSystem_Interface.Service.DoctorService;
@@ -27,6 +26,21 @@ public class DoctorInterfaceController {
     @PostMapping("/login/loginHandle")
     public Map<String, Object> doctorLoginHandle(@RequestParam("doctor_id") Integer doctor_id, @RequestParam("doctor_password") String doctor_password) {
         return doctorService.doctorLoginHandle(doctor_id, doctor_password);
+    }
+
+    @GetMapping("/getTodaySchedule")
+    public ArrayList<DoctorScheduleMap> getDoctorSchedule(@RequestParam("doctor_id") Integer doctor_id, @RequestParam("work_date") String work_date) {
+        return doctorService.getTodayDoctorSchedule(doctor_id, work_date);
+    }
+
+    @PostMapping("/addRegisterCount")
+    public Map<String, Object> addRegisterCount(@RequestParam("schedule_id") Integer schedule_id, @RequestParam("amount") Integer amount) {
+        return doctorService.addRegisterCount(schedule_id, amount);
+    }
+
+    @GetMapping("/searchRegistration")
+    ArrayList<RegistrationMap> getRegistrationMapByPatientKeyword(@RequestParam("doctor_id") Integer doctor_id, @RequestParam("keyword") String keyword) {
+        return doctorService.getRegistrationMapByPatientKeyword(doctor_id, keyword);
     }
 
     //获取病人就诊列表

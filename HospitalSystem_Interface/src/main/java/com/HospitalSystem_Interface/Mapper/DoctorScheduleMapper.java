@@ -38,17 +38,29 @@ public interface DoctorScheduleMapper {
     @Select("select * from DoctorSchedule where work_date = #{work_date} and noon_id = #{noon_id} and valid_flag = 1")
     List<DoctorSchedule> getValidDoctorScheduleByDateAndNoon(@Param("work_date") Date work_date, @Param("noon_id") Integer noon_id);
 
-    @Select("select * from DoctorSchedule where doctor_id = #{doctor_id}")
-    List<DoctorSchedule> getDoctorScheduleByByDoctor(Doctor doctor);
+    @Select("select * from V_DoctorSchedule where doctor_id = #{doctor_id} and work_date = #{work_date} and valid_flag = 1")
+    List<DoctorScheduleMap> getTodayDoctorScheduleByDoctor(@Param("doctor_id") Integer doctor_id, @Param("work_date") String work_date);
+
+    @Update("update doctorschedule set append_register_count = append_register_count + #{amount} where schedule_id = #{schedule_id}")
+    void addAppendRegisterCount(@Param("schedule_id") Integer schedule_id, @Param("amount") Integer amount);
+
+    @Update("update doctorschedule set remain_register_count = remain_register_count + #{amount} where schedule_id = #{schedule_id}")
+    void addRemainRegisterCount(@Param("schedule_id") Integer schedule_id, @Param("amount") Integer amount);
 
     @Select("select * from DoctorSchedule where work_date = #{work_date} and noon_id = #{noon_id} and doctor_id = #{doctor_id} and valid_flag = 1")
     DoctorSchedule getValidDoctorSchedule(@Param("work_date") String work_date, @Param("noon_id") Integer noon_id, @Param("doctor_id") Integer doctor_id);
 
-    @Select("select * from DoctorSchedule where work_date = #{work_date} and noon_id = #{noon_id} and doctor_id = #{doctor_id} and valid_flag = 1 for update")
-    DoctorSchedule getValidDoctorScheduleForUpdate(@Param("work_date") String work_date, @Param("noon_id") Integer noon_id, @Param("doctor_id") Integer doctor_id);
+    @Select("select * from DoctorSchedule where schedule_id = #{schedule_id} for update")
+    DoctorSchedule getDoctorScheduleForUpdate(@Param("schedule_id") Integer schedule_id);
 
     @Select("select * from v_doctorschedule where work_date = #{work_date} and noon_id = #{noon_id} and doctor_id = #{doctor_id} and valid_flag = 1")
     DoctorScheduleMap getValidDoctorScheduleMap(@Param("work_date") String work_date, @Param("noon_id") Integer noon_id, @Param("doctor_id") Integer doctor_id);
+
+    @Select("select count(*) from v_doctorschedule " +
+            "where doctor_id = #{doctor_id} " +
+            "  and valid_flag = 1 " +
+            "  and STR_TO_DATE(CONCAT(work_date, ' ' , end_time_hour, ':', end_time_minute, ':00'), '%Y-%m-%d %H:%i:%s') >= NOW()")
+    int getValidDoctorScheduleCountForTransfer(@Param("doctor_id") Integer doctor_id);
 
     @Select("select * from V_DoctorSchedule where work_date = #{work_date} and noon_id = #{noon_id} and dep_no = #{dep_no} and valid_flag = 1")
     List<DoctorScheduleMap> getDoctorScheduleMapByDepartmentAtDateAndNoon(@Param("work_date") String work_date, @Param("noon_id") Integer noon_id, @Param("dep_no") Integer dep_no);
@@ -56,8 +68,7 @@ public interface DoctorScheduleMapper {
     @Select("select * from v_doctorschedule ds " +
             "where ds.doctor_id = #{doctor_id} " +
             "  and ds.work_date = #{start_date} " +
-            "  and ds.end_time_hour >= DATE_FORMAT(current_time, '%H') " +
-            "  and ds.end_time_minute > DATE_FORMAT(current_time, '%i') " +
+            "  and NOW() < STR_TO_DATE(CONCAT(ds.work_date, ' ', ds.end_time_hour, ':', ds.end_time_minute, ':00'), '%Y-%m-%d %H:%i:%s')" +
             "  and ds.valid_flag = 1 " +
             "union all " +
             "select * from v_doctorschedule ds " +
@@ -75,8 +86,7 @@ public interface DoctorScheduleMapper {
 
     @Select("(select * from v_doctorschedule ds " +
             " where ds.work_date = DATE_FORMAT(NOW(), '%Y-%m-%d') " +
-            "  and ds.end_time_hour > DATE_FORMAT(NOW(), '%H') " +
-            "  and ds.end_time_minute > DATE_FORMAT(NOW(), '%m') " +
+            "  and NOW() < STR_TO_DATE(CONCAT(ds.work_date, ' ', ds.end_time_hour, ':', ds.end_time_minute, ':00'), '%Y-%m-%d %H:%i:%s') " +
             "  and ds.dep_name = #{dep_name} " +
             "  and ds.remain_register_count > 0 " +
             "  and ds.valid_flag = 1 " +
@@ -89,7 +99,7 @@ public interface DoctorScheduleMapper {
             "  and ds.remain_register_count > 0 " +
             "  and ds.valid_flag = 1 " +
             "order by ds.remain_register_count desc limit 1);")
-    List<DoctorScheduleMap> getRecommendedSchedule(String dep_name);
+    List<DoctorScheduleMap> getRecommendedSchedule(@Param("dep_name") String dep_name);
 
     @Select("select * from DoctorSchedule")
     List<DoctorSchedule> getAllDoctorSchedule();

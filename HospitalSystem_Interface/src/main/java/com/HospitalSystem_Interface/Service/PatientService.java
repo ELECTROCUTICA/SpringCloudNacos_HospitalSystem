@@ -2,7 +2,6 @@ package com.HospitalSystem_Interface.Service;
 
 import com.HospitalSystem_Pojo.Entity.*;
 import com.HospitalSystem_Pojo.Map.*;
-import com.HospitalSystem_Pojo.Response.*;
 import org.apache.ibatis.annotations.Param;
 import org.springframework.web.bind.annotation.RequestParam;
 
@@ -86,7 +85,7 @@ public interface PatientService {
      */
     String getDoctorDescription(Integer doctor_id);
 
-    Map<String, Object> submitRegistration(Integer doctor_id, String visit_date, Integer noon_id, Patient patient);
+    Map<String, Object> submitRegistration(Integer schedule_id, Integer doctor_id, String visit_date, Integer noon_id, Patient patient);
 
     String getDepartmentsStringList();
 

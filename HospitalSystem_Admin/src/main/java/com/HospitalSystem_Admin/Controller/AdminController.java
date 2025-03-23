@@ -72,7 +72,6 @@ public class AdminController {
                                             @RequestParam("doctor_password") String doctor_password,
                                             @RequestParam("valid_flag") Integer valid_flag,
                                             @RequestParam("doctor_description") String doctor_description) {
-        System.out.println(doctor_id);
         return adminFeignService.updateDoctor(doctor_id, doctor_name, doctor_sex, dep_no, title_no, doctor_password, valid_flag, doctor_description);
     }
 

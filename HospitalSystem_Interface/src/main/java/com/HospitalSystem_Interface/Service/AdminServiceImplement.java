@@ -7,6 +7,7 @@ import com.HospitalSystem_Pojo.JSON.*;
 import com.HospitalSystem_Interface.Mapper.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -16,6 +17,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.*;
+import static com.HospitalSystem_Pojo.Utils.TimeComplement.complement;
 
 
 @Service
@@ -27,8 +29,6 @@ public class AdminServiceImplement implements AdminService {
     private DoctorMapper doctorMapper;
     @Autowired
     private DepartmentMapper departmentMapper;
-//    @Autowired
-//    private DoctorArrangementMapper doctorArrangementMapper;
     @Autowired
     private DoctorScheduleMapper doctorScheduleMapper;
     @Autowired
@@ -43,21 +43,20 @@ public class AdminServiceImplement implements AdminService {
     public Map<String, Object> loginHandle(String id, String password) {
         Admin spec_admin = adminMapper.getAdmin(id);
 
-        HashMap<String, Object> map = new HashMap<>();
+        HashMap<String, Object> data = new HashMap<>();
         if (spec_admin != null && password.equals(spec_admin.getPassword())) {
-            map.put("status", "ok");
-            map.put("message", "登陆成功");
+            data.put("status", "ok");
+            data.put("message", "登陆成功");
         }
         else {
-            map.put("status", "fail");
-            map.put("message", "登陆失败，请检查输入的账号和密码");
+            data.put("status", "fail");
+            data.put("message", "登陆失败，请检查输入的账号和密码");
         }
-        return map;
+        return data;
     }
 
     @Override
     public Map<String, Object> doctorInfoInterface(String p, String keyword) {
-        HashMap<String, Object> map = new HashMap<>();
         int pn;             //page now
         if (p == null || p.isEmpty()) {
             pn = 1;
@@ -109,18 +108,19 @@ public class AdminServiceImplement implements AdminService {
     }
 
     @Override
+    @Transactional(propagation = Propagation.REQUIRED, isolation = Isolation.REPEATABLE_READ, rollbackFor = Exception.class)
     public Map<String, Object> deleteDoctor(Integer doctor_id) {
         Doctor doctor = doctorMapper.getDoctor(doctor_id);
-        HashMap<String, Object> map = new HashMap<>();
+        HashMap<String, Object> data = new HashMap<>();
         if (doctor != null) {
             doctorMapper.deleteDoctor(doctor);
-            map.put("status", "ok");
-            map.put("message", "删除医生信息成功");
+            data.put("status", "ok");
+            data.put("message", "删除医生信息成功");
         } else {
-            map.put("status", "fail");
-            map.put("message", "删除失败");
+            data.put("status", "fail");
+            data.put("message", "删除失败");
         }
-        return map;
+        return data;
     }
 
     @Override
@@ -129,10 +129,10 @@ public class AdminServiceImplement implements AdminService {
     }
 
     @Override
-    @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
+    @Transactional(propagation = Propagation.REQUIRED, isolation = Isolation.REPEATABLE_READ, rollbackFor = Exception.class)
     public Map<String, Object> updateDoctor(Integer doctor_id, String doctor_name, String doctor_sex, Integer dep_no, Integer title_no, String doctor_password,
                                             Integer valid_flag, String doctor_description) {
-        HashMap<String, Object> map = new HashMap<>();
+        HashMap<String, Object> data = new HashMap<>();
         Doctor doctor = doctorMapper.getDoctor(doctor_id);
         if (doctor != null) {
             doctor.setDoctor_name(doctor_name);
@@ -148,35 +148,35 @@ public class AdminServiceImplement implements AdminService {
             doctor.setCreate_time(doctor.getCreate_time());
             doctor.setCreate_user(doctor.getCreate_user());
             doctorMapper.updateDoctor(doctor);
-            map.put("status", "ok");
-            map.put("message", "修改成功");
+            data.put("status", "ok");
+            data.put("message", "修改成功");
         }
         else {
-            map.put("status", "fail");
-            map.put("message", "修改失败，不存在该医生信息");
+            data.put("status", "fail");
+            data.put("message", "修改失败，不存在该医生信息");
         }
-        return map;
+        return data;
     }
 
     @Override
-    @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
+    @Transactional(propagation = Propagation.REQUIRED, isolation = Isolation.REPEATABLE_READ, rollbackFor = Exception.class)
     public Map<String, Object> insertDoctor(Integer doctor_id, String doctor_name, String doctor_sex, Integer dep_no, Integer title_no, String doctor_password,
                                             Integer valid_flag, String doctor_description, String create_user) {
-        HashMap<String, Object> map = new HashMap<>();
+        HashMap<String, Object> data = new HashMap<>();
         if (doctor_name != null && doctor_sex != null && dep_no != null && title_no != null && doctor_password != null && valid_flag != null
                 && doctor_description != null && create_user != null) {
             String doctor_spell_code = ChineseToPinyinUtils.convertNameToPinYin(doctor_name);
             Doctor doctor = new Doctor(doctor_id, doctor_name, doctor_spell_code, doctor_sex, dep_no, departmentMapper.getDepartment(dep_no).getDep_name(),
                     title_no,titleMapper.getTitle(title_no).getTitle_name(), doctor_password, valid_flag, doctor_description, null, create_user);
             doctorMapper.insertDoctor(doctor);
-            map.put("status", "ok");
-            map.put("message", "创建医生信息完成");
+            data.put("status", "ok");
+            data.put("message", "创建医生信息完成");
         }
         else {
-            map.put("status", "fail");
-            map.put("message", "新建失败，请检查输入信息是否有效");
+            data.put("status", "fail");
+            data.put("message", "新建失败，请检查输入信息是否有效");
         }
-        return map;
+        return data;
     }
 
     @Override
@@ -226,65 +226,80 @@ public class AdminServiceImplement implements AdminService {
     }
 
     @Override
-    @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
+    @Transactional(propagation = Propagation.REQUIRED, isolation = Isolation.REPEATABLE_READ, rollbackFor = Exception.class)
     public Map<String, Object> insertDepartment(Integer dep_no, String dep_name, String dep_description, Integer valid_flag, String create_user) {
-        HashMap<String, Object> map = new HashMap<>();
+        HashMap<String, Object> data = new HashMap<>();
         if (dep_name != null && valid_flag != null && create_user != null) {
             Department department = new Department(0, dep_name, dep_description, valid_flag, null, create_user);
             departmentMapper.insertDepartment(department);
-            map.put("status", "ok");
-            map.put("message", "创建科室成功");
-            return map;
+            data.put("status", "ok");
+            data.put("message", "创建科室成功");
+            return data;
         }
-        map.put("status", "fail");
-        map.put("message", "创建失败，请完整地填写必要的信息");
-        return map;
+        data.put("status", "fail");
+        data.put("message", "创建失败，请完整地填写必要的信息");
+        return data;
     }
 
     @Override
-    @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
+    @Transactional(propagation = Propagation.REQUIRED, isolation = Isolation.REPEATABLE_READ, rollbackFor = Exception.class)
     public Map<String, Object> updateDepartment(Integer dep_no, String dep_name, String dep_description, Integer valid_flag) {
-        HashMap<String, Object> map = new HashMap<>();
+        HashMap<String, Object> data = new HashMap<>();
         if (dep_no > 0 && dep_name != null) {
             var department = departmentMapper.getDepartment(dep_no);
             department.setDep_name(dep_name);
             department.setDep_description(dep_description);
             department.setValid_flag(valid_flag);
             departmentMapper.updateDepartment(department);
-            map.put("status", "ok");
-            map.put("message", "修改成功");
-            return map;
+            data.put("status", "ok");
+            data.put("message", "修改成功");
+            return data;
         }
-        map.put("status", "fail");
-        map.put("message", "修改失败");
-        return map;
+        data.put("status", "fail");
+        data.put("message", "修改失败");
+        return data;
     }
 
     @Override
-    @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
+    @Transactional(propagation = Propagation.REQUIRED, isolation = Isolation.REPEATABLE_READ, rollbackFor = Exception.class)
     public Map<String, Object> transfer(Integer source, Integer target) {
-        HashMap<String, Object> map = new HashMap<>();
-        if (source >= 0 && target >= 0) {
+        HashMap<String, Object> data = new HashMap<>();
+        if (source > 0 && target > 0) {
+            if (source.equals(target)) {
+                data.put("status", "fail");
+                data.put("message", "请不要原地迁移");
+                return data;
+            }
+            ArrayList<Doctor> doctors = (ArrayList<Doctor> )departmentMapper.getDoctorsByDepartmentNo(source);
+            for (var doctor : doctors) {
+                int exist_valid_schedule_count = doctorScheduleMapper.getValidDoctorScheduleCountForTransfer(doctor.getDoctor_id());
+                if (exist_valid_schedule_count != 0) {
+                    data.put("status", "fail");
+                    data.put("message", "迁移失败，在执行科室医师迁移前，所有源科室的医师的未来有效排班必须全部取消");
+                    return data;
+                }
+            }
+
             departmentMapper.transferDoctorsToDepartment(source, target);
-            map.put("status", "ok");
-            map.put("message", "迁移完成");
+            data.put("status", "ok");
+            data.put("message", "迁移完成");
         }
         else {
-            map.put("status", "fail");
-            map.put("message", "迁移失败");
+            data.put("status", "fail");
+            data.put("message", "迁移失败，无效的科室编号");
         }
-        return map;
+        return data;
     }
 
     @Override
     public Map<String, Object> getSchedule() {
         LocalDateTime current = LocalDateTime.now();
-        ArrayList<LocalDateTime> times = (ArrayList<LocalDateTime>)IntStream.range(0, 7).mapToObj(i -> current.plusDays(i)).collect(Collectors.toList());
+        ArrayList<LocalDateTime> times = (ArrayList<LocalDateTime>)IntStream.range(0, 14).mapToObj(i -> current.plusDays(i)).collect(Collectors.toList());
 
 
-        HashMap<String, DateJSON> dates = new HashMap<>();
-        String now = null;
-        for (int i = 0; i < 7; i++) {
+        HashMap<String, DateJSON> dates1 = new HashMap<>();
+        HashMap<String, DateJSON> dates2 = new HashMap<>();
+        for (int i = 0; i < times.size(); i++) {
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy年MM月dd日");
             String dayOfWeek = switch (times.get(i).getDayOfWeek()) {
                 case MONDAY -> "周一";
@@ -297,12 +312,17 @@ public class AdminServiceImplement implements AdminService {
                 default -> "异常";
             };
             String dateStr = String.format("%s %s", times.get(i).format(formatter), dayOfWeek);
-            if (i == 0) now = dateStr;
-            dates.put(String.valueOf(i), new DateJSON(dateStr, (times.get(i).toString()).substring(0, 10)));
+            if (i < times.size() / 2) {
+                dates1.put(String.valueOf(i), new DateJSON(dateStr, (times.get(i).toString()).substring(0, 10)));
+            }
+            else {
+                dates2.put(String.valueOf(i), new DateJSON(dateStr, (times.get(i).toString()).substring(0, 10)));
+            }
         }
 
         return Map.of(
-                "dates", dates,
+                "dates1", dates1,
+                "dates2", dates2,
                 "now", current,
                 "departments", departmentMapper.getAllValidDepartments(),
                 "noons", noonMapper.getAllValidNoon()
@@ -325,49 +345,39 @@ public class AdminServiceImplement implements AdminService {
     }
 
     @Override
-    @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
+    @Transactional(propagation = Propagation.REQUIRED, isolation = Isolation.REPEATABLE_READ, rollbackFor = Exception.class)
     public Map<String, Object> goToWork(String work_date, Integer doctor_id, Integer noon_id, Integer init_register_count, String submit_user) {
-        HashMap<String, Object> map = new HashMap<>();
-
-        DoctorSchedule schedule;
-        Date real_work_date;
-        SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
-        try {
-            real_work_date = formatter.parse(work_date);
-        }
-        catch (ParseException e) {
-            throw new RuntimeException(e);
-        }
+        HashMap<String, Object> data = new HashMap<>();
 
         if (doctor_id != null && work_date != null && init_register_count > 0) {
-            schedule = new DoctorSchedule(0, work_date, noon_id, doctor_id, doctorMapper.getDoctor(doctor_id).getTitle_no(),
+            var schedule = new DoctorSchedule(0, work_date, noon_id, doctor_id, doctorMapper.getDoctor(doctor_id).getTitle_no(),
                     doctorMapper.getDoctor(doctor_id).getDep_no(), init_register_count, init_register_count, 0, 1, submit_user, null);
             doctorScheduleMapper.insertDoctorSchedule(schedule);
-            map.put("status", "ok");
-            map.put("message", "排班成功");
+            data.put("status", "ok");
+            data.put("message", "排班成功");
         }
         else {
-            map.put("status", "fail");
-            map.put("message", "排班失败");
+            data.put("status", "fail");
+            data.put("message", "排班失败");
         }
-        return map;
+        return data;
     }
 
     @Override
-    @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
+    @Transactional(propagation = Propagation.REQUIRED, isolation = Isolation.REPEATABLE_READ, rollbackFor = Exception.class)
     public Map<String, Object> cancelSchedule(Integer schedule_id) {
-        HashMap<String, Object> map = new HashMap<>();
+        HashMap<String, Object> data = new HashMap<>();
         DoctorSchedule schedule = doctorScheduleMapper.getDoctorSchedule(schedule_id);
         if (schedule != null) {
             schedule.setValid_flag(0);
             doctorScheduleMapper.updateDoctorSchedule(schedule);
-            map.put("status", "ok");
-            map.put("message", "取消成功");
-            return map;
+            data.put("status", "ok");
+            data.put("message", "取消成功");
+            return data;
         }
-        map.put("status", "fail");
-        map.put("message", "取消失败");
-        return map;
+        data.put("status", "fail");
+        data.put("message", "取消失败");
+        return data;
     }
 
     @Override
@@ -414,30 +424,31 @@ public class AdminServiceImplement implements AdminService {
     }
 
     @Override
+    @Transactional(propagation = Propagation.REQUIRED, isolation = Isolation.REPEATABLE_READ, rollbackFor = Exception.class)
     public Map<String, Object> resetPassword(String patient_id) {
-        HashMap<String, Object> map = new HashMap<>();
+        HashMap<String, Object> data = new HashMap<>();
         if (patient_id == null || patient_id.isEmpty()) {
-            map.put("status", "fail");
-            map.put("message", String.format("重置失败，找不到身份证号码为 %s 的病人账户", patient_id));
+            data.put("status", "fail");
+            data.put("message", String.format("重置失败，找不到身份证号码为 %s 的病人账户", patient_id));
         }
         else {
             Patient patient = patientMapper.getPatient(patient_id);
             patient.setPatient_password("123456");
             patientMapper.updatePatient(patient);
-            map.put("status", "ok");
-            map.put("message", String.format("用户 %s %s 的密码已重置为：123456", patient_id, patient.getPatient_name()));
+            data.put("status", "ok");
+            data.put("message", String.format("用户 %s %s 的密码已重置为：123456", patient_id, patient.getPatient_name()));
         }
-        return map;
+        return data;
     }
 
     @Override
     public Map<String, Object> titleManager() {
-        HashMap<String, Object> map = new HashMap<>();
+        HashMap<String, Object> data = new HashMap<>();
 
         ArrayList<Title> titles = (ArrayList<Title>)titleMapper.getAllTitles();
 
-        for (var i = 0; i < titles.size(); i++) map.put(String.valueOf(i + 1), titles.get(i));
-        return map;
+        for (var i = 0; i < titles.size(); i++) data.put(String.valueOf(i + 1), titles.get(i));
+        return data;
     }
 
     @Override
@@ -446,83 +457,83 @@ public class AdminServiceImplement implements AdminService {
     }
 
     @Override
-    @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
+    @Transactional(propagation = Propagation.REQUIRED, isolation = Isolation.REPEATABLE_READ, rollbackFor = Exception.class)
     public Map<String, Object> insertTitle(Integer title_no, String title_name, Integer valid_flag) {
-        HashMap<String, Object> map = new HashMap<>();
+        HashMap<String, Object> data = new HashMap<>();
 
         if (title_name == null || title_name.isEmpty()) {
-            map.put("status", "fail");
-            map.put("message", "添加职称失败，职称名称不能为空");
-            return map;
+            data.put("status", "fail");
+            data.put("message", "添加职称失败，职称名称不能为空");
+            return data;
         }
 
         Title temp = titleMapper.getValidTitleByName(title_name);
         if (temp != null) {
-            map.put("status", "fail");
-            map.put("message", String.format("添加职称失败，已存在同名且有效的职称 %s", temp.getTitle_name()));
-            return map;
+            data.put("status", "fail");
+            data.put("message", String.format("添加职称失败，已存在同名且有效的职称 %s", temp.getTitle_name()));
+            return data;
         }
 
         Title title = new Title(0, title_name, 1);
         titleMapper.insertTitle(title);
-        map.put("status", "ok");
-        map.put("message", "职称创建完成");
-        return map;
+        data.put("status", "ok");
+        data.put("message", "职称创建完成");
+        return data;
     }
 
     @Override
-    @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
+    @Transactional(propagation = Propagation.REQUIRED, isolation = Isolation.REPEATABLE_READ, rollbackFor = Exception.class)
     public Map<String, Object> disableTitle(Integer title_no) {
-        HashMap<String, Object> map = new HashMap<>();
+        HashMap<String, Object> data = new HashMap<>();
 
         Title title = titleMapper.getTitle(title_no);
         if (title == null) {
-            map.put("status", "fail");
-            map.put("message", String.format("不存在的职称ID %s", title_no));
-            return map;
+            data.put("status", "fail");
+            data.put("message", String.format("不存在的职称ID %s", title_no));
+            return data;
         }
         title.setValid_flag(0);
         titleMapper.updateTitle(title);
-        map.put("status", "ok");
-        map.put("message", String.format("职称 %s %s 已禁用", title.getTitle_no(), title.getTitle_name()));
-        return map;
+        data.put("status", "ok");
+        data.put("message", String.format("职称 %s %s 已禁用", title.getTitle_no(), title.getTitle_name()));
+        return data;
     }
 
     @Override
-    @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
+    @Transactional(propagation = Propagation.REQUIRED, isolation = Isolation.REPEATABLE_READ, rollbackFor = Exception.class)
     public Map<String, Object> enableTitle(Integer title_no) {
-        HashMap<String, Object> map = new HashMap<>();
+        HashMap<String, Object> data = new HashMap<>();
 
         Title title = titleMapper.getTitle(title_no);
         if (title == null) {
-            map.put("status", "fail");
-            map.put("message", String.format("不存在的职称ID %s", title_no));
-            return map;
+            data.put("status", "fail");
+            data.put("message", String.format("不存在的职称ID %s", title_no));
+            return data;
         }
         title.setValid_flag(0);
         titleMapper.updateTitle(title);
-        map.put("status", "ok");
-        map.put("message", String.format("职称 %s %s 已启用", title.getTitle_no(), title.getTitle_name()));
-        return map;
+        data.put("status", "ok");
+        data.put("message", String.format("职称 %s %s 已启用", title.getTitle_no(), title.getTitle_name()));
+        return data;
     }
 
     @Override
-    @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
+    @Transactional(propagation = Propagation.REQUIRED, isolation = Isolation.REPEATABLE_READ, rollbackFor = Exception.class)
     public Map<String, Object> updateTitle(Integer title_no, String title_name, Integer valid_flag) {
-        HashMap<String, Object> map = new HashMap<>();
+        HashMap<String, Object> data = new HashMap<>();
 
-        Title title = titleMapper.getTitle(title_no);
+        var title = titleMapper.getTitle(title_no);
         if (title == null) {
-            map.put("status", "fail");
-            map.put("message", String.format("不存在的职称ID %s", title_no));
-            return map;
+            data.put("status", "fail");
+            data.put("message", String.format("不存在的职称ID %s", title_no));
+            return data;
         }
         title.setTitle_name(title_name);
         title.setValid_flag(valid_flag);
         titleMapper.updateTitle(title);
-        map.put("status", "ok");
-        map.put("message", String.format("职称ID %s 已更新完成", title_no));
-        return map;
+        data.put("status", "ok");
+        data.put("message", String.format("职称ID %s 已更新完成", title_no));
+        return data;
     }
 
 
@@ -530,24 +541,9 @@ public class AdminServiceImplement implements AdminService {
     public Map<String, Object> noonManager() {
 
         ArrayList<Noon> noons = (ArrayList<Noon>)noonMapper.getAllNoon();
-        ArrayList<String> begin_time_str = new ArrayList<>();
-        ArrayList<String> end_time_str = new ArrayList<>();
-        for (Noon noon : noons) {
-            if (noon.getBegin_time_minute() < 10)
-                begin_time_str.add(String.format("%s:%s", noon.getBegin_time_hour(), "0" + noon.getBegin_time_minute()));
-            else
-                begin_time_str.add(String.format("%s:%s", noon.getBegin_time_hour(), noon.getBegin_time_minute()));
-
-            if (noon.getEnd_time_minute() < 10)
-                end_time_str.add(String.format("%s:%s", noon.getEnd_time_hour(), "0" + noon.getEnd_time_minute()));
-            else
-                end_time_str.add(String.format("%s:%s", noon.getEnd_time_hour(), noon.getEnd_time_minute()));
-        }
 
         return Map.of(
-                "noons", noons,
-                "begin_time_str", begin_time_str,
-                "end_time_str", end_time_str
+                "noons", noons
         );
     }
 
@@ -557,78 +553,78 @@ public class AdminServiceImplement implements AdminService {
     }
 
     @Override
-    @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
+    @Transactional(propagation = Propagation.REQUIRED, isolation = Isolation.REPEATABLE_READ, rollbackFor = Exception.class)
     public Map<String, Object> insertNoon(Integer noon_id, String noon_name, Integer begin_time_hour, Integer begin_time_minute,
                                           Integer end_time_hour, Integer end_time_minute, String noon_memo, Integer valid_flag) {
-        HashMap<String, Object> map = new HashMap<>();
+        HashMap<String, Object> data = new HashMap<>();
 
         if (noon_name == null || noon_name.isEmpty()) {
-            map.put("status", "fail");
-            map.put("message", "添加午别失败，午别名称不能为空");
-            return map;
+            data.put("status", "fail");
+            data.put("message", "添加午别失败，午别名称不能为空");
+            return data;
         }
 
         Noon temp = noonMapper.getNoon(noon_id);
         if (temp != null) {
-            map.put("status", "fail");
-            map.put("message", String.format("添加午别失败，已存在午别ID %s", noon_id));
-            return map;
+            data.put("status", "fail");
+            data.put("message", String.format("添加午别失败，已存在午别ID %s", noon_id));
+            return data;
         }
-        Noon noon = new Noon(0, noon_name, begin_time_hour, begin_time_minute, end_time_hour, end_time_minute, noon_memo, valid_flag);
+        var noon = new Noon(0, noon_name, begin_time_hour, begin_time_minute, end_time_hour, end_time_minute, noon_memo, valid_flag);
         noonMapper.insertNoon(noon);
-        map.put("status", "ok");
-        map.put("message", "添加午别成功");
-        return map;
+        data.put("status", "ok");
+        data.put("message", "添加午别成功");
+        return data;
 
     }
 
     @Override
-    @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
+    @Transactional(propagation = Propagation.REQUIRED, isolation = Isolation.REPEATABLE_READ, rollbackFor = Exception.class)
     public Map<String, Object> disableNoon(Integer noon_id) {
-        HashMap<String, Object> map = new HashMap<>();
+        HashMap<String, Object> data = new HashMap<>();
 
         Noon noon = noonMapper.getNoon(noon_id);
         if (noon == null) {
-            map.put("status", "fail");
-            map.put("message", String.format("不存在的午别ID %s", noon_id));
-            return map;
+            data.put("status", "fail");
+            data.put("message", String.format("不存在的午别ID %s", noon_id));
+            return data;
         }
         noon.setValid_flag(0);
         noonMapper.updateNoon(noon);
-        map.put("status", "ok");
-        map.put("message", String.format("午别 %s %s 已禁用", noon.getNoon_id(), noon.getNoon_name()));
-        return map;
+        data.put("status", "ok");
+        data.put("message", String.format("午别 %s %s 已禁用", noon.getNoon_id(), noon.getNoon_name()));
+        return data;
     }
 
     @Override
-    @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
+    @Transactional(propagation = Propagation.REQUIRED, isolation = Isolation.REPEATABLE_READ, rollbackFor = Exception.class)
     public Map<String, Object> enableNoon(Integer noon_id) {
-        HashMap<String, Object> map = new HashMap<>();
+        HashMap<String, Object> data = new HashMap<>();
 
         Noon noon = noonMapper.getNoon(noon_id);
         if (noon == null) {
-            map.put("status", "fail");
-            map.put("message", String.format("不存在的午别ID %s", noon_id));
-            return map;
+            data.put("status", "fail");
+            data.put("message", String.format("不存在的午别ID %s", noon_id));
+            return data;
         }
         noon.setValid_flag(1);
         noonMapper.updateNoon(noon);
-        map.put("status", "ok");
-        map.put("message", String.format("午别 %s %s 已启用", noon.getNoon_id(), noon.getNoon_name()));
-        return map;
+        data.put("status", "ok");
+        data.put("message", String.format("午别 %s %s 已启用", noon.getNoon_id(), noon.getNoon_name()));
+        return data;
     }
 
     @Override
-    @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
+    @Transactional(propagation = Propagation.REQUIRED, isolation = Isolation.REPEATABLE_READ, rollbackFor = Exception.class)
     public Map<String, Object> updateNoon(Integer noon_id, String noon_name, Integer begin_time_hour, Integer begin_time_minute,
                                           Integer end_time_hour, Integer end_time_minute, String noon_memo, Integer valid_flag) {
-        HashMap<String, Object> map = new HashMap<>();
+        HashMap<String, Object> data = new HashMap<>();
 
         Noon noon = noonMapper.getNoon(noon_id);
         if (noon == null) {
-            map.put("status", "fail");
-            map.put("message", String.format("不存在的午别 %s", noon_id));
-            return map;
+            data.put("status", "fail");
+            data.put("message", String.format("不存在的午别 %s", noon_id));
+            return data;
         }
         noon.setNoon_name(noon_name);
         noon.setBegin_time_hour(begin_time_hour);
@@ -638,9 +634,9 @@ public class AdminServiceImplement implements AdminService {
         noon.setNoon_memo(noon_memo);
         noon.setValid_flag(valid_flag);
         noonMapper.updateNoon(noon);
-        map.put("status", "ok");
-        map.put("message", String.format("午别 %s 更新成功", noon.getNoon_id()));
-        return map;
+        data.put("status", "ok");
+        data.put("message", String.format("午别 %s 更新成功", noon.getNoon_id()));
+        return data;
     }
 
 }

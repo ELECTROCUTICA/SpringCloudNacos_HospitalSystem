@@ -4,7 +4,6 @@ import com.HospitalSystem_Interface.Mapper.DoctorScheduleMapper;
 import com.HospitalSystem_Pojo.Entity.Doctor;
 import com.HospitalSystem_Pojo.Entity.Patient;
 import com.HospitalSystem_Pojo.Map.*;
-import com.HospitalSystem_Pojo.Response.*;
 import com.HospitalSystem_Pojo.Utils.*;
 import com.HospitalSystem_Interface.Service.PatientService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -101,8 +100,8 @@ public class PatientInterfaceController {
 
     //病人提交挂号预约
     @PostMapping("/registration/submit")
-    public Map<String, Object> submitRegistration(@RequestParam("doctor_id") Integer doctor_id, @RequestParam("date") String date, @RequestParam("noon_id") Integer noon_id, @SpringQueryMap Patient patient) {
-        return patientService.submitRegistration(doctor_id, date,noon_id, patient);
+    public Map<String, Object> submitRegistration(@RequestParam("schedule_id") Integer schedule_id, @RequestParam("doctor_id") Integer doctor_id, @RequestParam("date") String date, @RequestParam("noon_id") Integer noon_id, @SpringQueryMap Patient patient) {
+        return patientService.submitRegistration(schedule_id, doctor_id, date,noon_id, patient);
     }
 
     @PostMapping("/requestAI")

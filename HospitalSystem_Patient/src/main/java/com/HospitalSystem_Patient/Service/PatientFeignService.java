@@ -4,8 +4,6 @@ package com.HospitalSystem_Patient.Service;
 import com.HospitalSystem_Pojo.Entity.Doctor;
 import com.HospitalSystem_Pojo.Entity.Patient;
 import com.HospitalSystem_Pojo.Map.DoctorScheduleMap;
-import com.HospitalSystem_Pojo.Response.PatientArrangementResponse;
-import com.HospitalSystem_Pojo.Response.PatientRecordsResponse;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.cloud.openfeign.SpringQueryMap;
 import org.springframework.lang.Nullable;
@@ -69,9 +67,8 @@ public interface PatientFeignService {
     @GetMapping(PREFIX + "/registration/getDescription")
     String getDoctorDescription(@RequestParam("doctor_id") Integer doctor_id);
 
-
     @PostMapping(PREFIX + "/registration/submit")
-    Map<String, Object> submitRegistration(@RequestParam("doctor_id") Integer doctor_id, @RequestParam("date") String date, @RequestParam("noon_id") Integer noon_id, @SpringQueryMap Patient patient);
+    Map<String, Object> submitRegistration(@RequestParam("schedule_id") Integer schedule_id, @RequestParam("doctor_id") Integer doctor_id, @RequestParam("date") String date, @RequestParam("noon_id") Integer noon_id, @SpringQueryMap Patient patient);
 
     @PostMapping(PREFIX + "/requestAI")
     Map<String, Object> requestAI(@RequestParam("message") String message);

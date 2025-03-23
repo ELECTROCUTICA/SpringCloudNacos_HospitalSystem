@@ -2,7 +2,6 @@ package com.HospitalSystem_Interface.Service;
 
 import com.HospitalSystem_Pojo.Entity.*;
 import com.HospitalSystem_Pojo.Map.*;
-import com.HospitalSystem_Pojo.Response.*;
 import com.HospitalSystem_Pojo.Utils.*;
 import com.HospitalSystem_Pojo.JSON.*;
 import com.HospitalSystem_Interface.Mapper.*;
@@ -10,6 +9,9 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Isolation;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -25,17 +27,19 @@ public class DoctorServiceImplement implements DoctorService {
     private DepartmentMapper departmentMapper;
     @Autowired
     private RegistrationMapper registrationMapper;
+    @Autowired
+    private DoctorScheduleMapper doctorScheduleMapper;
 
 
     @Override
     public Map<String, Object> doctorLoginHandle(Integer doctor_id, String doctor_password) {
         Doctor doctor = doctorMapper.getDoctor(doctor_id);
-        HashMap<String, Object> map = new HashMap<>();
+        HashMap<String, Object> data = new HashMap<>();
 
         if (doctor != null && doctor_password.equals(doctor.getDoctor_password())) {
             if (doctor.getValid_flag() == 0) {
-                map.put("status", "fail");
-                map.put("message", String.format("%s %s医生账号不可用，请联系管理员",doctor.getDoctor_id(), doctor.getDoctor_name()));
+                data.put("status", "fail");
+                data.put("message", String.format("%s %s医生账号不可用，请联系管理员",doctor.getDoctor_id(), doctor.getDoctor_name()));
             }
             else {
                 String DoctorJSONString = null;
@@ -48,16 +52,27 @@ public class DoctorServiceImplement implements DoctorService {
                     e.printStackTrace();
                 }
 
-                map.put("status", "ok");
-                map.put("doctor", DoctorJSONString);
-                map.put("message", String.format("%s医生，登入成功", doctor.getDoctor_name()));
+                data.put("status", "ok");
+                data.put("doctor", DoctorJSONString);
+                data.put("message", String.format("%s医生，登入成功", doctor.getDoctor_name()));
             }
         }
         else {
-            map.put("status", "fail");
-            map.put("message", "登入失败，请输入正确的职工号和密码");
+            data.put("status", "fail");
+            data.put("message", "登入失败，请输入正确的职工号和密码");
         }
-        return map;
+        return data;
+    }
+
+    @Override
+    public ArrayList<DoctorScheduleMap> getTodayDoctorSchedule(Integer doctor_id, String work_date) {
+        return (ArrayList<DoctorScheduleMap>) doctorScheduleMapper.getTodayDoctorScheduleByDoctor(doctor_id, work_date);
+    }
+
+
+    @Override
+    public ArrayList<RegistrationMap> getRegistrationMapByPatientKeyword(Integer doctor_id, String keyword) {
+        return (ArrayList<RegistrationMap>)registrationMapper.getRegistrationMapByPatientKeyword(doctor_id, keyword);
     }
 
     @Override
@@ -71,25 +86,48 @@ public class DoctorServiceImplement implements DoctorService {
     }
 
     @Override
+    @Transactional(propagation = Propagation.REQUIRED, isolation = Isolation.REPEATABLE_READ, rollbackFor = Exception.class)
+    public Map<String, Object> addRegisterCount(Integer schedule_id, Integer amount) {
+        var ds = doctorScheduleMapper.getDoctorScheduleForUpdate(schedule_id);
+        if (ds == null) return Map.of(
+                "status", "fail",
+                "message", "找不到该排班信息"
+        );
+        else if (ds.getValid_flag() == 0) return Map.of(
+                "status", "fail",
+                "message", "无效的排班信息"
+        );
+
+        doctorScheduleMapper.addAppendRegisterCount(ds.getSchedule_id(), amount);
+        doctorScheduleMapper.addRemainRegisterCount(ds.getSchedule_id(), amount);
+
+        return Map.of(
+                "status", "ok",
+                "message", "加号成功"
+        );
+    }
+
+    @Override
+    @Transactional(propagation = Propagation.REQUIRED, isolation = Isolation.REPEATABLE_READ, rollbackFor = Exception.class)
     public Map<String, Object> changeRegisterStatus(Integer register_id, Integer status) {
-        HashMap<String, Object> map = new HashMap<>();
+        HashMap<String, Object> data = new HashMap<>();
         if (register_id != null) {
             Registration updated = registrationMapper.getRegistration(register_id);
             updated.setRegistration_status(status);
             registrationMapper.updateRegistration(updated);
             if (status == 2) {
-                map.put("status", "ok");
-                map.put("message", "成功完成就诊");
+                data.put("status", "ok");
+                data.put("message", "成功完成就诊");
             }
             else if (status == 0) {
-                map.put("state", "ok");
-                map.put("message", "成功取消就诊");
+                data.put("state", "ok");
+                data.put("message", "成功取消就诊");
             }
             else {
-                map.put("status", "fail");
-                map.put("message", "提交异常");
+                data.put("status", "fail");
+                data.put("message", "提交异常");
             }
-            return map;
+            return data;
         }
         else {
             return Map.of(
