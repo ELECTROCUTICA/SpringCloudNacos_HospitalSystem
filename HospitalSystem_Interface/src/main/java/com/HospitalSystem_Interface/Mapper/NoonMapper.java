@@ -32,6 +32,10 @@ public interface NoonMapper {
     @Select("select * from Noon where noon_id = #{noon_id}")
     Noon getNoon(int noon_id);
 
+    @Select("select * from Noon where noon_name = #{noon_name}")
+    Noon getNoonByName(String noon_name);
+
+
     @Select("select * from Noon")
     List<Noon> getAllNoon();
 

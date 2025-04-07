@@ -122,8 +122,9 @@ public class PatientController {
     }
 
     @PostMapping("/requestAI")
-    public Map<String, Object> requestAI(@RequestParam("message") String message) {
-        return patientFeignService.requestAI(message);
+    public Map<String, Object> requestAI(@RequestParam("message") String message, HttpServletRequest request) {
+        String token = request.getHeader("Authorization");
+        return patientFeignService.requestAI(message, JWTUtils.getPatientFromToken(token));
     }
 
 

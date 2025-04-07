@@ -1,4 +1,5 @@
 package com.HospitalSystem_Pojo.Utils;
+import com.HospitalSystem_Pojo.Entity.Patient;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
@@ -15,13 +16,13 @@ import java.util.concurrent.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class DeepSeekAPI {              //DeepSeek V3/R1 API
+public class DeepSeekAPI {              //DeepSeek V3 API
 
     private static final String URL = "https://api.deepseek.com";   //官网URL
-    private static final String API_KEY = "**";            //官网KEY
+    private static final String API_KEY = "";            //官网KEY
 
     private static final String URL_Aliyun = "https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions";  //阿里云URL
-    private static final String API_KEY_Aliyun = "**";     //阿里云KEY
+    private static final String API_KEY_Aliyun = "sk-20dd368863a347b89c494f6c1a159c2f";     //阿里云KEY
 
     private static ExecutorService threadPool = new ThreadPoolExecutor(Runtime.getRuntime().availableProcessors(),
             Runtime.getRuntime().availableProcessors(),
@@ -29,7 +30,7 @@ public class DeepSeekAPI {              //DeepSeek V3/R1 API
             TimeUnit.SECONDS,
             new ArrayBlockingQueue<>(6));
 
-    public static HashMap<String, Object> sendRequestToDeepSeek(String message, String departments_list) {
+    public static HashMap<String, Object> sendRequestToDeepSeek(String message, String departments_list, Patient patient) {
         Callable<String> task = () -> {
             String reply = null;
             try (CloseableHttpClient httpClient = HttpClients.createDefault()) {
@@ -38,14 +39,14 @@ public class DeepSeekAPI {              //DeepSeek V3/R1 API
                 post.setHeader("Authorization", "Bearer " + API_KEY_Aliyun);
 
                 //若使用DeepSeek R1 推理模型，回复速度太慢
-//                String jsonBody_R1 = String.format("{\"model\": \"deepseek-reasoner\", \"messages\": [{\"role\": \"system\", \"content\": \"现在你是一名医院中的导诊员，根据病人提出的症状来指导病人应该去看什么科室（重要），以及提供一些医疗建议（次要）\"}, {\"role\": \"user\", \"content\": \"%s\"}]}",
-//                        message);
-//                String jsonBody_V3 = String.format("{\"model\": \"deepseek-chat\", \"messages\": [{\"role\": \"system\", \"content\": \"现在你是一名医院中的导诊员，根据病人提出的症状来指导病人应该去看什么科室（重要），以及提供一些医疗建议（次要）\"}, {\"role\": \"user\", \"content\": \"%s\"}]}",
-//                        message);
                 var departments = "科室列表：" + departments_list;
-                var pre_message = "现在你是医院中的一名导诊员，根据病人提出的问题，在以下科室列表中提出1个最适合病人就诊的科室(重要)并使用“【】”括号标注科室名，以及适当地提供一些医疗建议(次要) " + departments;
+                var pre_message = "现在你是医院中的一名导诊员，根据病人提出的问题，在以下的科室列表中提出1个最适合病人就诊的科室(重要)并使用“【】”括号标注科室名，以及适当地提供一些医疗建议(次要) " + departments;
+                var patient_info = String.format("病人信息基本：%s %d岁，", patient.getPatient_sex(), patient.getPatient_age());
+                StringBuilder intact_message = new StringBuilder(128);
+                intact_message.append(patient_info).append("病人提问：").append(message);
+
                 var jsonBody_V3_Aliyun = String.format("{\"model\": \"deepseek-v3\", \"messages\": [{\"role\": \"system\", \"content\": \"%s\"}, {\"role\": \"user\", \"content\": \"%s\"}]}",
-                        pre_message, message);
+                        pre_message, new String(intact_message));
 
                 post.setEntity(new StringEntity(jsonBody_V3_Aliyun, StandardCharsets.UTF_8));
 

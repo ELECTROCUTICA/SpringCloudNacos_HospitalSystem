@@ -10,7 +10,6 @@ import java.util.Map;
 
 public interface DoctorService {
 
-
     Map<String, Object> doctorLoginHandle(Integer doctor_id, String doctor_password);
 
     ArrayList<DoctorScheduleMap> getTodayDoctorSchedule(Integer doctor_id, String work_date);

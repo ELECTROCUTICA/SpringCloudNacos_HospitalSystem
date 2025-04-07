@@ -56,7 +56,6 @@ public class PatientServiceImplement implements PatientService {
         HashMap<String, Object> data = new HashMap<>();
         Patient patient_by_id = patientMapper.getPatient(patient_id);
 
-
         if (patient_by_id != null && patient_by_id.getPatient_password().equals(patient_password)) {
 
             var payLoad = new HashMap<String, Object>();
@@ -458,7 +457,7 @@ public class PatientServiceImplement implements PatientService {
     @Override
     public String getDepartmentsStringList() {
         StringBuilder text = new StringBuilder(128);
-        ArrayList<Department> departments = (ArrayList<Department>)departmentMapper.getAllDepartments();
+        ArrayList<Department> departments = (ArrayList<Department>)departmentMapper.getAllValidDepartments();
         for (var i = 0; i < departments.size(); i++) {
             text.append(departments.get(i).getDep_name());
             if (i < departments.size() - 1) {

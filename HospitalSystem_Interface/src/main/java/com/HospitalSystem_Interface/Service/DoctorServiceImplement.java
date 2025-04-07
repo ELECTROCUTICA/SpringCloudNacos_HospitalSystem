@@ -97,6 +97,12 @@ public class DoctorServiceImplement implements DoctorService {
                 "status", "fail",
                 "message", "无效的排班信息"
         );
+        else if (amount <= 0) {
+            return Map.of(
+                    "status", "fail",
+                    "message", "加号数量必须为大于零的正整数"
+            );
+        }
 
         doctorScheduleMapper.addAppendRegisterCount(ds.getSchedule_id(), amount);
         doctorScheduleMapper.addRemainRegisterCount(ds.getSchedule_id(), amount);

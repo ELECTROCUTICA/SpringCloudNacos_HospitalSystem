@@ -94,12 +94,6 @@ public interface AdminService {
      */
     ArrayList<Doctor> getDoctorsNoWorkAtDateAndNoon(Integer dep_no, String date, Integer noon_id);
 
-    /**  管理员获取某天某科室的上班医生
-     * @param dep_no    目标日期
-     * @param date    目标医生的职工号
-     * @return 包含医生信息列表的json格式数据
-     */
-    ArrayList<Doctor> getDoctorsWorkAtDateAndNoon(Integer dep_no, String date, Integer noon_id);
 
     ArrayList<DoctorScheduleMap> getDoctorsWorkAtDateAndNoon2(Integer dep_no, String date, Integer noon_id);
 

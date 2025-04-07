@@ -41,7 +41,9 @@ public class DoctorController {
             }
 
             data.remove("doctor");
-            request.getSession(true).setAttribute("Doctor", doctor);
+            HttpSession session = request.getSession(true);
+            session.setMaxInactiveInterval(12 * 60 * 60);
+            session.setAttribute("Doctor", doctor);
         }
         return data;
     }
@@ -86,7 +88,7 @@ public class DoctorController {
         return doctorFeignService.changeRegisterStatus(register_id, status);
     }
 
-    @GetMapping("logout")
+    @GetMapping("/logout")
     public Map<String, Object> logout(HttpServletRequest request) {
         HttpSession session = request.getSession();
         if (session.getAttribute("Doctor") != null) {

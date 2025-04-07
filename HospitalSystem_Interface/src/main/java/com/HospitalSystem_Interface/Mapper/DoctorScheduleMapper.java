@@ -62,7 +62,8 @@ public interface DoctorScheduleMapper {
             "  and STR_TO_DATE(CONCAT(work_date, ' ' , end_time_hour, ':', end_time_minute, ':00'), '%Y-%m-%d %H:%i:%s') >= NOW()")
     int getValidDoctorScheduleCountForTransfer(@Param("doctor_id") Integer doctor_id);
 
-    @Select("select * from V_DoctorSchedule where work_date = #{work_date} and noon_id = #{noon_id} and dep_no = #{dep_no} and valid_flag = 1")
+    @Select("select * from V_DoctorSchedule ds where ds.work_date = #{work_date} and ds.noon_id = #{noon_id} and ds.dep_no = (select dp.dep_no from department dp where dp.dep_no = #{dep_no} and dp.valid_flag = 1) and ds.valid_flag = 1 " +
+            "and ds.doctor_id in (select d.doctor_id from Doctor d where d.dep_no = #{dep_no} and d.valid_flag = 1)")
     List<DoctorScheduleMap> getDoctorScheduleMapByDepartmentAtDateAndNoon(@Param("work_date") String work_date, @Param("noon_id") Integer noon_id, @Param("dep_no") Integer dep_no);
 
     @Select("select * from v_doctorschedule ds " +
@@ -81,7 +82,8 @@ public interface DoctorScheduleMapper {
     @Select("select * from v_doctorschedule ds where ds.work_date >= #{start_date} and ds.work_date <= #{end_date} and ds.dep_name like CONCAT('%', #{dep_name}, '%') and ds.valid_flag = 1")
     List<DoctorScheduleMap> getDoctorScheduleMapByDepartmentName(@Param("dep_name") String dep_name, @Param("start_date") String start_date, @Param("end_date") String end_date);
 
-    @Select("select * from v_doctorschedule ds where ds.dep_no = #{dep_no} and ds.work_date = #{date} and noon_id = #{noon_id} and valid_flag = 1")
+    @Select("select * from v_doctorschedule ds where ds.work_date = #{date} and noon_id = #{noon_id} and ds.dep_no = (select dp.dep_no from department dp where dp.dep_no = #{dep_no} and dp.valid_flag = 1) and valid_flag = 1 " +
+            "and ds.doctor_id in (select d.doctor_id from Doctor d where d.dep_no = #{dep_no} and d.valid_flag = 1)")
     List<DoctorScheduleMap> getDoctorsWorkAtDateAndNoon2(@Param("dep_no") Integer dep_no, @Param("date") String date, @Param("noon_id") Integer noon_id);
 
     @Select("(select * from v_doctorschedule ds " +

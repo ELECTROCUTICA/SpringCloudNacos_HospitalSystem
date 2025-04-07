@@ -56,7 +56,7 @@ public interface RegistrationMapper {
 
     @Select("select * from v_registration where doctor_id = #{doctor_id} and (patient_name = #{keyword} or patient_spell_code = #{keyword}) and registration_status = 1 and visit_date < NOW()" +
             "union all " +
-            "select * from v_registration where doctor_id = #{doctor_id} and (patient_name = #{keyword} or patient_spell_code = #{keyword}) and registration_status != 1 and visit_date < NOW()")
+            "select * from v_registration where doctor_id = #{doctor_id} and ((patient_name like CONCAT('%', #{keyword}, '%') or patient_spell_code = #{keyword}) or (serial_id = #{keyword} and visit_date = DATE_FORMAT(NOW(), '%Y-%m-%d'))) and registration_status != 1 and visit_date < NOW()")
     List<RegistrationMap> getRegistrationMapByPatientKeyword(@Param("doctor_id") Integer doctor_id, @Param("keyword") String keyword);
 
     @Select("select * from v_registration where visit_date = #{param1} and patient_id = #{param2} and registration_status = 1")

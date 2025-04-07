@@ -105,8 +105,8 @@ public class PatientInterfaceController {
     }
 
     @PostMapping("/requestAI")
-    public Map<String, Object> requestAI(@RequestParam("message") String message) {
-        HashMap<String, Object> data = DeepSeekAPI.sendRequestToDeepSeek(message, patientService.getDepartmentsStringList());
+    public Map<String, Object> requestAI(@RequestParam("message") String message, Patient patient) {
+        HashMap<String, Object> data = DeepSeekAPI.sendRequestToDeepSeek(message, patientService.getDepartmentsStringList(), patient);
         ArrayList<DoctorScheduleMap> rec = patientService.getDoctorScheduleRecommendation((ArrayList<String>) data.get("departments"));
 
         HashMap<String, Object> response = new HashMap<>();

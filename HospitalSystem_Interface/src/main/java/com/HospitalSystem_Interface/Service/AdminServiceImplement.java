@@ -5,6 +5,7 @@ import com.HospitalSystem_Pojo.Utils.ChineseToPinyinUtils;
 import com.HospitalSystem_Pojo.Entity.*;
 import com.HospitalSystem_Pojo.JSON.*;
 import com.HospitalSystem_Interface.Mapper.*;
+import com.HospitalSystem_Pojo.Utils.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
@@ -135,21 +136,27 @@ public class AdminServiceImplement implements AdminService {
         HashMap<String, Object> data = new HashMap<>();
         Doctor doctor = doctorMapper.getDoctor(doctor_id);
         if (doctor != null) {
-            doctor.setDoctor_name(doctor_name);
-            doctor.setDoctor_spell_code(ChineseToPinyinUtils.convertNameToPinYin(doctor_name));
-            doctor.setDoctor_sex(doctor_sex);
-            doctor.setDep_no(dep_no);
-            doctor.setDep_name(departmentMapper.getDepartment(dep_no).getDep_name());
-            doctor.setTitle_no(title_no);
-            doctor.setTitle_name(titleMapper.getTitle(title_no).getTitle_name());
-            doctor.setDoctor_password(doctor_password);
-            doctor.setValid_flag(valid_flag);
-            doctor.setDoctor_description(doctor_description);
-            doctor.setCreate_time(doctor.getCreate_time());
-            doctor.setCreate_user(doctor.getCreate_user());
-            doctorMapper.updateDoctor(doctor);
-            data.put("status", "ok");
-            data.put("message", "修改成功");
+            if ((doctor.getDep_no() != dep_no || doctor.getValid_flag() != valid_flag) && doctorScheduleMapper.getValidDoctorScheduleCountForTransfer(doctor.getDoctor_id()) > 0) {
+                data.put("status", "fail");
+                data.put("message", "修改医生信息失败\n如果需要更新医生的从属科室或者停用医生账户，请先将该医生的未来的所有有效排班全部取消");
+            }
+            else {
+                doctor.setDoctor_name(doctor_name);
+                doctor.setDoctor_spell_code(ChineseToPinyinUtils.convertNameToPinYin(doctor_name));
+                doctor.setDoctor_sex(doctor_sex);
+                doctor.setDep_no(dep_no);
+                doctor.setDep_name(departmentMapper.getDepartment(dep_no).getDep_name());
+                doctor.setTitle_no(title_no);
+                doctor.setTitle_name(titleMapper.getTitle(title_no).getTitle_name());
+                doctor.setDoctor_password(doctor_password);
+                doctor.setValid_flag(valid_flag);
+                doctor.setDoctor_description(doctor_description);
+                doctor.setCreate_time(doctor.getCreate_time());
+                doctor.setCreate_user(doctor.getCreate_user());
+                doctorMapper.updateDoctor(doctor);
+                data.put("status", "ok");
+                data.put("message", "修改成功");
+            }
         }
         else {
             data.put("status", "fail");
@@ -335,11 +342,6 @@ public class AdminServiceImplement implements AdminService {
     }
 
     @Override
-    public ArrayList<Doctor> getDoctorsWorkAtDateAndNoon(Integer dep_no, String work_date, Integer noon_id) {
-        return (ArrayList<Doctor>) doctorMapper.getDoctorsWorkAtDateAndNoon(dep_no, work_date, noon_id);
-    }
-
-    @Override
     public ArrayList<DoctorScheduleMap> getDoctorsWorkAtDateAndNoon2(Integer dep_no, String work_date, Integer noon_id) {
         return (ArrayList<DoctorScheduleMap>) doctorScheduleMapper.getDoctorsWorkAtDateAndNoon2(dep_no, work_date, noon_id);
     }
@@ -349,7 +351,7 @@ public class AdminServiceImplement implements AdminService {
     public Map<String, Object> goToWork(String work_date, Integer doctor_id, Integer noon_id, Integer init_register_count, String submit_user) {
         HashMap<String, Object> data = new HashMap<>();
 
-        if (doctor_id != null && work_date != null && init_register_count > 0) {
+        if (doctor_id != null && !StringUtils.isStringNullOrEmpty(work_date) && init_register_count > 0) {
             var schedule = new DoctorSchedule(0, work_date, noon_id, doctor_id, doctorMapper.getDoctor(doctor_id).getTitle_no(),
                     doctorMapper.getDoctor(doctor_id).getDep_no(), init_register_count, init_register_count, 0, 1, submit_user, null);
             doctorScheduleMapper.insertDoctorSchedule(schedule);
@@ -528,6 +530,7 @@ public class AdminServiceImplement implements AdminService {
             data.put("message", String.format("不存在的职称ID %s", title_no));
             return data;
         }
+
         title.setTitle_name(title_name);
         title.setValid_flag(valid_flag);
         titleMapper.updateTitle(title);
@@ -570,6 +573,19 @@ public class AdminServiceImplement implements AdminService {
             data.put("message", String.format("添加午别失败，已存在午别ID %s", noon_id));
             return data;
         }
+        Noon temp2 = noonMapper.getNoonByName(noon_name);
+        if (temp2 != null) {
+            data.put("status", "fail");
+            data.put("message", String.format("添加午别失败，已存在午别名称为 %s", temp2.getNoon_name()));
+            return data;
+        }
+        if (begin_time_hour > end_time_hour || (begin_time_hour.equals(end_time_hour) && begin_time_minute >= end_time_minute)) {
+            data.put("status", "fail");
+            data.put("message", "添加午别失败，结束时间不得早于开始时间");
+            return data;
+        }
+
+
         var noon = new Noon(0, noon_name, begin_time_hour, begin_time_minute, end_time_hour, end_time_minute, noon_memo, valid_flag);
         noonMapper.insertNoon(noon);
         data.put("status", "ok");
@@ -624,6 +640,11 @@ public class AdminServiceImplement implements AdminService {
         if (noon == null) {
             data.put("status", "fail");
             data.put("message", String.format("不存在的午别 %s", noon_id));
+            return data;
+        }
+        if (begin_time_hour > end_time_hour || (begin_time_hour.equals(end_time_hour) && begin_time_minute >= end_time_minute)) {
+            data.put("status", "fail");
+            data.put("message", "修改午别失败，结束时间不得早于开始时间");
             return data;
         }
         noon.setNoon_name(noon_name);

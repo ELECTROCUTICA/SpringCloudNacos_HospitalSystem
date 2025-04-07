@@ -71,7 +71,7 @@ public interface PatientFeignService {
     Map<String, Object> submitRegistration(@RequestParam("schedule_id") Integer schedule_id, @RequestParam("doctor_id") Integer doctor_id, @RequestParam("date") String date, @RequestParam("noon_id") Integer noon_id, @SpringQueryMap Patient patient);
 
     @PostMapping(PREFIX + "/requestAI")
-    Map<String, Object> requestAI(@RequestParam("message") String message);
+    Map<String, Object> requestAI(@RequestParam("message") String message, @SpringQueryMap Patient patient);
 
 
 }

@@ -139,11 +139,6 @@ public class AdminInterfaceController {
     }
 
     //获取当日某科室的工作医生
-    @GetMapping("/schedule/getDoctorsWork")
-    public ArrayList<Doctor> getDoctorsWork(@RequestParam("dep_no") Integer dep_no, @RequestParam("date") String date, @RequestParam("noon_id") Integer noon_id) {
-        return adminService.getDoctorsWorkAtDateAndNoon(dep_no, date, noon_id);
-    }
-
     @GetMapping("/schedule/getDoctorsWork2")
     public ArrayList<DoctorScheduleMap> getDoctorsWork2(@RequestParam("dep_no") Integer dep_no, @RequestParam("date") String date, @RequestParam("noon_id") Integer noon_id) {
         return adminService.getDoctorsWorkAtDateAndNoon2(dep_no, date, noon_id);
