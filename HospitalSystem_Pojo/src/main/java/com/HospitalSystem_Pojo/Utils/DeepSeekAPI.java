@@ -40,7 +40,8 @@ public class DeepSeekAPI {              //DeepSeek V3 API
 
                 //若使用DeepSeek R1 推理模型，回复速度太慢
                 var departments = "科室列表：" + departments_list;
-                var pre_message = "现在你是医院中的一名导诊员，根据病人提出的问题，在以下的科室列表中提出1个最适合病人就诊的科室(重要)并使用“【】”括号标注科室名，以及适当地提供一些医疗建议(次要) " + departments;
+                var pre_message = "现在你是医院中的一名导诊员，根据病人提出的问题，" +
+                        "在以下的科室列表中提出1个最适合病人就诊的科室(重要)并使用“【】”括号标注科室名，以及适当地提供一些医疗建议(次要) " + departments;
                 var patient_info = String.format("病人信息基本：%s %d岁，", patient.getPatient_sex(), patient.getPatient_age());
                 StringBuilder intact_message = new StringBuilder(128);
                 intact_message.append(patient_info).append("病人提问：").append(message);

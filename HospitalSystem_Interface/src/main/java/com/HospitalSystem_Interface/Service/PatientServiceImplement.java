@@ -395,7 +395,8 @@ public class PatientServiceImplement implements PatientService {
             //对于一名患者，不允许在同一天，同一午别挂同一名医生的号
             ArrayList<Registration> collections = (ArrayList<Registration>)registrationMapper.getRegistrationByPatientAtDateAndNoon(patient.getPatient_id(), visit_date, noon_id);
             for (Registration registration : collections) {
-                if (doctor_id == registration.getDoctor_id() && visit_date.equals(registration.getVisit_date()) && noon_id == registration.getNoon_id() && registration.getRegistration_status() == 1) {
+                if (doctor_id == registration.getDoctor_id() && visit_date.equals(registration.getVisit_date())
+                        && noon_id == registration.getNoon_id() && registration.getRegistration_status() == 1) {
                     return Map.of(
                             "status", "duplicate",
                             "message", "挂号失败，请不要重复预约"
