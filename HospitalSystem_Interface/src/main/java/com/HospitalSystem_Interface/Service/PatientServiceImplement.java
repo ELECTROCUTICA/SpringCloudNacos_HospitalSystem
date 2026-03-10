@@ -387,7 +387,7 @@ public class PatientServiceImplement implements PatientService {
     }
 
     @Override
-    @Transactional(propagation = Propagation.REQUIRED, isolation = Isolation.REPEATABLE_READ, timeout = 12, rollbackFor = Exception.class)
+    @Transactional(propagation = Propagation.REQUIRED, isolation = Isolation.REPEATABLE_READ, timeout = 10, rollbackFor = Exception.class)
     public Map<String, Object> submitRegistration(Integer schedule_id, Integer doctor_id, String visit_date, Integer noon_id, Patient patient) {
         if (!StringUtils.isStringNullOrEmpty(patient.getPatient_id()) && schedule_id != null && doctor_id != null && !StringUtils.isStringNullOrEmpty(visit_date) && noon_id != null) {
             redisUtils.deletePatientRecordsCache(patient.getPatient_id());

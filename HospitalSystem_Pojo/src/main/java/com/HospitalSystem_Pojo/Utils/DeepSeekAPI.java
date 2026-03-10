@@ -46,7 +46,8 @@ public class DeepSeekAPI {              //DeepSeek V3 API
                 StringBuilder intact_message = new StringBuilder(128);
                 intact_message.append(patient_info).append("病人提问：").append(message);
 
-                var jsonBody_V3_Aliyun = String.format("{\"model\": \"deepseek-v3\", \"messages\": [{\"role\": \"system\", \"content\": \"%s\"}, {\"role\": \"user\", \"content\": \"%s\"}]}",
+                var jsonBody_V3_Aliyun = String.format("{\"model\": \"deepseek-v3\", \"messages\": [{\"role\": \"system\", \"content\": \"%s\"}, " +
+                                "{\"role\": \"user\", \"content\": \"%s\"}]}",
                         pre_message, new String(intact_message));
 
                 post.setEntity(new StringEntity(jsonBody_V3_Aliyun, StandardCharsets.UTF_8));
@@ -62,15 +63,18 @@ public class DeepSeekAPI {              //DeepSeek V3 API
             }
             catch (Exception e) {
                 e.printStackTrace();
+                var data = new HashMap<String, Object>();
+                data.put("message", "请求DeepSeek时发生异常");
                 return "请求DeepSeek时发生异常";
             }
         };
 
         Future<String> future = threadPool.submit(task);
 
+
         try {
             var response_message = future.get();
-            HashMap<String, Object> data = new HashMap<>();
+            var data = new HashMap<String, Object>();
             data.put("message", response_message);
             data.put("departments", getRecommendDepartmentsName(response_message));
 
@@ -78,7 +82,7 @@ public class DeepSeekAPI {              //DeepSeek V3 API
         }
         catch (Exception e) {
             e.printStackTrace();
-            HashMap<String, Object> data = new HashMap<>();
+            var data = new HashMap<String, Object>();
             data.put("message", "请求DeepSeek时发生异常");
             return data;
         }
